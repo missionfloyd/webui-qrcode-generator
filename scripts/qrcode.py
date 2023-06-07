@@ -44,7 +44,7 @@ def on_ui_tabs():
         with gr.Row():
             with gr.Column():
                 with gr.Tab("Text"):
-                    text = gr.Text(label="Text")
+                    text = gr.Textbox(label="Text", lines=3)
                     button_generate_text = gr.Button("Generate", variant="primary")
                 with gr.Tab("WiFi"):
                     ssid = gr.Text(label="SSID")
@@ -82,7 +82,6 @@ def on_ui_tabs():
                 output = gr.Image(interactive=False, show_label=False).style(height=480)
 
         button_generate_text.click(generate_text, [text, micro_code, error_correction, scale], output, show_progress=False)
-        text.submit(generate_text, [text, micro_code, error_correction, scale], output, show_progress=False)
         button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden, micro_code, error_correction, scale], output, show_progress=False)
         button_generate_geo.click(generate_geo, [latitude, longitude, micro_code, error_correction, scale], output, show_progress=False)
         button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax, micro_code, error_correction, scale], output, show_progress=False)
