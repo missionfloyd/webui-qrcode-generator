@@ -9,30 +9,31 @@ from PIL import Image
 import segno
 from segno import helpers
 
-def generate(data, micro, error, scale):
-    qrcode = segno.make(data, micro=micro, error=error)
+def generate(data, micro, error, scale, boost_error, border, dark, light):
+    qrcode = segno.make(data, micro=micro, error=error, boost_error=boost_error)
     out = io.BytesIO()
-    qrcode.save(out, scale=scale, kind='png')
+    qrcode.save(out, scale=scale, kind='png', border=border, dark=dark, light=light)
     return Image.open(out)
 
-def generate_wifi(ssid, password, security, hidden, micro, error, scale):
+def generate_wifi(ssid, password, security, hidden, micro, error, scale, boost_error, border, dark, light):
     if security == "None":
         password = security = None
 
     data = helpers.make_wifi_data(ssid=ssid, password=password, security=security, hidden=hidden)
-    return generate(data, micro, error, scale)
+    return generate(data, micro, error, scale, boost_error, border, dark, light)
 
-def generate_geo(latitude, longitude, micro, error, scale):
+def generate_geo(latitude, longitude, micro, error, scale, boost_error, border, dark, light):
     data = helpers.make_geo_data(latitude, longitude)
-    return generate(data, micro, error, scale)
+    return generate(data, micro, error, scale, boost_error, border, dark, light)
 
-def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax, micro, error, scale):
+def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax,
+                   micro, error, scale, boost_error, border, dark, light):
     data = helpers.make_vcard_data(name=name, displayname=displayname, nickname=nickname, street=street, city=city, region=region, zipcode=zipcode, country=country, birthday=birthday, email=email, phone=phone, fax=fax)
-    return generate(data, micro, error, scale)
+    return generate(data, micro, error, scale, boost_error, border, dark, light)
 
-def generate_email(address, subject, body, micro, error, scale):
+def generate_email(address, subject, body, micro, error, scale, boost_error, border, dark, light):
     data = helpers.make_make_email_data(to=address, subject=subject, body=body)
-    return generate(data, micro, error, scale)
+    return generate(data, micro, error, scale, boost_error, border, dark, light)
 
 def on_ui_tabs():
     with gr.Blocks() as ui_component:
@@ -75,14 +76,19 @@ def on_ui_tabs():
                     button_generate_geo = gr.Button("Generate", variant="primary")
                 with gr.Accordion("Settings", open=False):
                     scale = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
+                    border = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
+                    with gr.Row():
+                        dark_color = gr.ColorPicker("#000000", label="Dark Color")
+                        light_color = gr.ColorPicker("#ffffff", label="Light Color")
                     error_correction = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
-                    error_boost = gr.Checkbox(False, label="Micro QR Code")
-                    micro_code = gr.Checkbox(False, label="Micro QR Code")
+                    with gr.Row():
+                        error_boost = gr.Checkbox(True, label="Boost Error Correction Level")
+                        micro_code = gr.Checkbox(False, label="Micro QR Code")
 
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False, elem_id="qrcode_output").style(height=480)
 
-        common_inputs = [micro_code, error_correction, scale]
+        common_inputs = [micro_code, error_correction, scale, error_boost, border, dark_color, light_color]
 
         button_generate_text.click(generate, [text] + common_inputs, output, show_progress=False)
         button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden] + common_inputs, output, show_progress=False)
