@@ -9,8 +9,8 @@ from PIL import Image
 import segno
 from segno import helpers
 
-def generate_text(text, is_micro):
-    qrcode = segno.make(text, micro=is_micro)
+def generate_text(text, micro, error):
+    qrcode = segno.make(text, micro=micro, error=error)
     out = io.BytesIO()
     qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
@@ -71,12 +71,14 @@ def on_ui_tabs():
                         latitude = gr.Number(0, label="Latitude")
                         longitude = gr.Number(0, label="Longitude")
                     button_generate_geo = gr.Button("Generate", variant="primary")
+                with gr.Accordion("Settings", open=False):
+                    error_correction = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
 
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False).style(height=480)
 
-        button_generate_text.click(generate_text, [text, micro_code], output, show_progress=False)
-        text.submit(generate_text, [text, micro_code], output, show_progress=False)
+        button_generate_text.click(generate_text, [text, micro_code, error_correction], output, show_progress=False)
+        text.submit(generate_text, [text, micro_code, error_correction], output, show_progress=False)
         button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden], output, show_progress=False)
         button_generate_geo.click(generate_wifi, [latitude, longitude], output, show_progress=False)
         button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax], output, show_progress=False)
