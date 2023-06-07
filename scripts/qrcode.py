@@ -15,23 +15,26 @@ def generate_text(text, micro, error):
     qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
 
-def generate_wifi(ssid, password, security, hidden):
+def generate_wifi(ssid, password, security, hidden, micro, error):
     if security == "None":
         password = security = None
 
-    qrcode = helpers.make_wifi(ssid=ssid, password=password, security=security, hidden=hidden)
+    data = helpers.make_wifi_data(ssid=ssid, password=password, security=security, hidden=hidden)
+    qrcode = segno.make(data, micro=micro, error=error)
     out = io.BytesIO()
     qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
 
-def generate_geo(latitude, longitude):
-    qrcode = helpers.make_geo(latitude, longitude)
+def generate_geo(latitude, longitude, micro, error):
+    data = helpers.make_geo_data(latitude, longitude)
+    qrcode = segno.make(data, micro=micro, error=error)
     out = io.BytesIO()
     qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
 
-def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax):
-    qrcode = helpers.make_vcard(name=name, displayname=displayname, nickname=nickname, street=street, city=city, region=region, zipcode=zipcode, country=country, birthday=birthday, email=email, phone=phone, fax=fax)
+def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax, micro, error):
+    data = helpers.make_vcard_data(name=name, displayname=displayname, nickname=nickname, street=street, city=city, region=region, zipcode=zipcode, country=country, birthday=birthday, email=email, phone=phone, fax=fax)
+    qrcode = segno.make(data, micro=micro, error=error)
     out = io.BytesIO()
     qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
@@ -42,7 +45,6 @@ def on_ui_tabs():
             with gr.Column():
                 with gr.Tab("Text"):
                     text = gr.Text(label="Text")
-                    micro_code = gr.Checkbox(False, label="Micro QR Code")
                     button_generate_text = gr.Button("Generate", variant="primary")
                 with gr.Tab("WiFi"):
                     ssid = gr.Text(label="SSID")
@@ -73,15 +75,16 @@ def on_ui_tabs():
                     button_generate_geo = gr.Button("Generate", variant="primary")
                 with gr.Accordion("Settings", open=False):
                     error_correction = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                    micro_code = gr.Checkbox(False, label="Micro QR Code")
 
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False).style(height=480)
 
         button_generate_text.click(generate_text, [text, micro_code, error_correction], output, show_progress=False)
         text.submit(generate_text, [text, micro_code, error_correction], output, show_progress=False)
-        button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden], output, show_progress=False)
-        button_generate_geo.click(generate_wifi, [latitude, longitude], output, show_progress=False)
-        button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax], output, show_progress=False)
+        button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden, micro_code, error_correction], output, show_progress=False)
+        button_generate_geo.click(generate_geo, [latitude, longitude, micro_code, error_correction], output, show_progress=False)
+        button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax, micro_code, error_correction], output, show_progress=False)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
