@@ -9,8 +9,8 @@ from PIL import Image
 import segno
 from segno import helpers
 
-def generate_text(text, micro, error, scale):
-    qrcode = segno.make(text, micro=micro, error=error)
+def generate(data, micro, error, scale):
+    qrcode = segno.make(data, micro=micro, error=error)
     out = io.BytesIO()
     qrcode.save(out, scale=scale, kind='png')
     return Image.open(out)
@@ -20,31 +20,19 @@ def generate_wifi(ssid, password, security, hidden, micro, error, scale):
         password = security = None
 
     data = helpers.make_wifi_data(ssid=ssid, password=password, security=security, hidden=hidden)
-    qrcode = segno.make(data, micro=micro, error=error)
-    out = io.BytesIO()
-    qrcode.save(out, scale=scale, kind='png')
-    return Image.open(out)
+    return generate(data, micro, error, scale)
 
 def generate_geo(latitude, longitude, micro, error, scale):
     data = helpers.make_geo_data(latitude, longitude)
-    qrcode = segno.make(data, micro=micro, error=error)
-    out = io.BytesIO()
-    qrcode.save(out, scale=scale, kind='png')
-    return Image.open(out)
+    return generate(data, micro, error, scale)
 
 def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax, micro, error, scale):
     data = helpers.make_vcard_data(name=name, displayname=displayname, nickname=nickname, street=street, city=city, region=region, zipcode=zipcode, country=country, birthday=birthday, email=email, phone=phone, fax=fax)
-    qrcode = segno.make(data, micro=micro, error=error)
-    out = io.BytesIO()
-    qrcode.save(out, scale=scale, kind='png')
-    return Image.open(out)
+    return generate(data, micro, error, scale)
 
 def generate_email(address, subject, body, micro, error, scale):
     data = helpers.make_make_email_data(to=address, subject=subject, body=body)
-    qrcode = segno.make(data, micro=micro, error=error)
-    out = io.BytesIO()
-    qrcode.save(out, scale=scale, kind='png')
-    return Image.open(out)
+    return generate(data, micro, error, scale)
 
 def on_ui_tabs():
     with gr.Blocks() as ui_component:
@@ -88,6 +76,7 @@ def on_ui_tabs():
                 with gr.Accordion("Settings", open=False):
                     scale = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
                     error_correction = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                    error_boost = gr.Checkbox(False, label="Micro QR Code")
                     micro_code = gr.Checkbox(False, label="Micro QR Code")
 
             with gr.Column():
@@ -95,7 +84,7 @@ def on_ui_tabs():
 
         common_inputs = [micro_code, error_correction, scale]
 
-        button_generate_text.click(generate_text, [text] + common_inputs, output, show_progress=False)
+        button_generate_text.click(generate, [text] + common_inputs, output, show_progress=False)
         button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden] + common_inputs, output, show_progress=False)
         button_generate_geo.click(generate_geo, [latitude, longitude] + common_inputs, output, show_progress=False)
         button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax] + common_inputs, output, show_progress=False)
