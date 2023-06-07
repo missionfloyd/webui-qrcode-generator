@@ -49,11 +49,6 @@ def on_ui_tabs():
                     password = gr.Text(label="Password")
                     security = gr.Radio(value="None", label="Security", choices=["None", "WEP", "WPA"])
                     button_generate_wifi = gr.Button("Generate", variant="primary")
-                with gr.Tab("Coordinates"):
-                    with gr.Row():
-                        latitude = gr.Number(0, label="Latitude")
-                        longitude = gr.Number(0, label="Longitude")
-                    button_generate_geo = gr.Button("Generate", variant="primary")
                 with gr.Tab("vCard"):
                     name = gr.Text(label="Name")
                     displayname = gr.Text(label="Display Name")
@@ -70,10 +65,17 @@ def on_ui_tabs():
                     phone = gr.Text(label="Phone")
                     fax = gr.Text(label="Fax")
                     button_generate_vcard = gr.Button("Generate", variant="primary")
+                with gr.Tab("Coordinates"):
+                    with gr.Row():
+                        latitude = gr.Number(0, label="Latitude")
+                        longitude = gr.Number(0, label="Longitude")
+                    button_generate_geo = gr.Button("Generate", variant="primary")
+
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False).style(height=480)
 
         button_generate_text.click(generate_text, [text, micro_code], output, show_progress=False)
+        text.submit(generate_text, [text, micro_code], output, show_progress=False)
         button_generate_wifi.click(generate_wifi, [ssid, password, security], output, show_progress=False)
         button_generate_geo.click(generate_wifi, [latitude, longitude], output, show_progress=False)
         button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax], output, show_progress=False)
