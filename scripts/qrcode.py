@@ -15,11 +15,11 @@ def generate_text(text, is_micro):
     qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
 
-def generate_wifi(ssid, password, security):
+def generate_wifi(ssid, password, security, hidden):
     if security == "None":
         password = security = None
 
-    qrcode = helpers.make_wifi(ssid=ssid, password=password, security=security)
+    qrcode = helpers.make_wifi(ssid=ssid, password=password, security=security, hidden=hidden)
     out = io.BytesIO()
     qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
@@ -46,6 +46,7 @@ def on_ui_tabs():
                     button_generate_text = gr.Button("Generate", variant="primary")
                 with gr.Tab("WiFi"):
                     ssid = gr.Text(label="SSID")
+                    hidden = gr.Checkbox(False, label="Hidden SSID")
                     password = gr.Text(label="Password")
                     security = gr.Radio(value="None", label="Security", choices=["None", "WEP", "WPA"])
                     button_generate_wifi = gr.Button("Generate", variant="primary")
@@ -76,7 +77,7 @@ def on_ui_tabs():
 
         button_generate_text.click(generate_text, [text, micro_code], output, show_progress=False)
         text.submit(generate_text, [text, micro_code], output, show_progress=False)
-        button_generate_wifi.click(generate_wifi, [ssid, password, security], output, show_progress=False)
+        button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden], output, show_progress=False)
         button_generate_geo.click(generate_wifi, [latitude, longitude], output, show_progress=False)
         button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax], output, show_progress=False)
 
