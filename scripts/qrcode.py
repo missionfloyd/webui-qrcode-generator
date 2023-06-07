@@ -91,13 +91,15 @@ def on_ui_tabs():
                     micro_code = gr.Checkbox(False, label="Micro QR Code")
 
             with gr.Column():
-                output = gr.Image(interactive=False, show_label=False).style(height=480)
+                output = gr.Image(interactive=False, show_label=False, elem_id="qrcode_output").style(height=480)
 
-        button_generate_text.click(generate_text, [text, micro_code, error_correction, scale], output, show_progress=False)
-        button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden, micro_code, error_correction, scale], output, show_progress=False)
-        button_generate_geo.click(generate_geo, [latitude, longitude, micro_code, error_correction, scale], output, show_progress=False)
-        button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax, micro_code, error_correction, scale], output, show_progress=False)
-        button_generate_email.click(generate_email, [recipient, subject, body, micro_code, error_correction, scale], output, show_progress=False)
+        common_inputs = [micro_code, error_correction, scale]
+
+        button_generate_text.click(generate_text, [text] + common_inputs, output, show_progress=False)
+        button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden] + common_inputs, output, show_progress=False)
+        button_generate_geo.click(generate_geo, [latitude, longitude] + common_inputs, output, show_progress=False)
+        button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax] + common_inputs, output, show_progress=False)
+        button_generate_email.click(generate_email, [recipient, subject, body] + common_inputs, output, show_progress=False)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
