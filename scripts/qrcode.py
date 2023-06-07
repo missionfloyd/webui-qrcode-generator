@@ -11,7 +11,7 @@ import segno
 def generate_text(text, is_micro):
     qrcode = segno.make(text, micro=is_micro)
     out = io.BytesIO()
-    qrcode.save(out, scale=5, kind='png')
+    qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
 
 def generate_wifi(ssid, password, security):
@@ -20,19 +20,19 @@ def generate_wifi(ssid, password, security):
 
     qrcode = segno.helpers.make_wifi(ssid=ssid, password=password, security=security)
     out = io.BytesIO()
-    qrcode.save(out, scale=5, kind='png')
+    qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
 
 def generate_geo(latitude, longitude):
     qrcode = segno.helpers.make_geo(latitude, longitude)
     out = io.BytesIO()
-    qrcode.save(out, scale=5, kind='png')
+    qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
 
 def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax):
     qrcode = segno.helpers.make_vcard(name=name, displayname=displayname, nickname=nickname, street=street, city=city, region=region, zipcode=zipcode, country=country, birthday=birthday, email=email, phone=phone, fax=fax)
     out = io.BytesIO()
-    qrcode.save(out, scale=5, kind='png')
+    qrcode.save(out, scale=10, kind='png')
     return Image.open(out)
 
 def on_ui_tabs():
