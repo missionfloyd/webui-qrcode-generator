@@ -4,9 +4,9 @@ import io
 import os
 
 from modules import script_callbacks
+from scripts import constants
 from PIL import Image
 import segno
-from segno import helpers
 
 def generate_text(text, is_micro):
     qrcode = segno.make(text, micro=is_micro)
@@ -18,13 +18,19 @@ def generate_wifi(ssid, password, security):
     if security == "None":
         password = security = None
 
-    qrcode = helpers.make_wifi(ssid=ssid, password=password, security=security)
+    qrcode = segno.helpers.make_wifi(ssid=ssid, password=password, security=security)
     out = io.BytesIO()
     qrcode.save(out, scale=5, kind='png')
     return Image.open(out)
 
 def generate_geo(latitude, longitude):
-    qrcode = helpers.make_geo_data(latitude, longitude)
+    qrcode = segno.helpers.make_geo(latitude, longitude)
+    out = io.BytesIO()
+    qrcode.save(out, scale=5, kind='png')
+    return Image.open(out)
+
+def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax):
+    qrcode = segno.helpers.make_vcard(name=name, displayname=displayname, nickname=nickname, street=street, city=city, region=region, zipcode=zipcode, country=country, birthday=birthday, email=email, phone=phone, fax=fax)
     out = io.BytesIO()
     qrcode.save(out, scale=5, kind='png')
     return Image.open(out)
@@ -47,13 +53,29 @@ def on_ui_tabs():
                         latitude = gr.Number(0, label="Latitude")
                         longitude = gr.Number(0, label="Longitude")
                     button_generate_geo = gr.Button("Generate", variant="primary")
-
+                with gr.Tab("vCard"):
+                    name = gr.Text(label="Name")
+                    displayname = gr.Text(label="Display Name")
+                    nickname = gr.Text(label="Nickname")
+                    address = gr.Text(label="Address")
+                    with gr.Row():
+                        city = gr.Text(label="City")
+                        state = gr.Text(label="State")
+                    with gr.Row():
+                        zipcode = gr.Text(label="ZIP Code")
+                        country = gr.Dropdown(label="Country", choices=constants.countries)
+                    birthday = gr.Text(label="Birthday")
+                    email = gr.Text(label="email")
+                    phone = gr.Text(label="Phone")
+                    fax = gr.Text(label="Fax")
+                    button_generate_vcard = gr.Button("Generate", variant="primary")
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False).style(height=480)
 
         button_generate_text.click(generate_text, [text, micro_code], output, show_progress=False)
         button_generate_wifi.click(generate_wifi, [ssid, password, security], output, show_progress=False)
         button_generate_geo.click(generate_wifi, [latitude, longitude], output, show_progress=False)
+        button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax], output, show_progress=False)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
