@@ -39,6 +39,13 @@ def generate_vcard(name, displayname, nickname, street, city, region, zipcode, c
     qrcode.save(out, scale=scale, kind='png')
     return Image.open(out)
 
+def generate_email(address, subject, body, micro, error, scale):
+    data = helpers.make_make_email_data(to=address, subject=subject, body=body)
+    qrcode = segno.make(data, micro=micro, error=error)
+    out = io.BytesIO()
+    qrcode.save(out, scale=scale, kind='png')
+    return Image.open(out)
+
 def on_ui_tabs():
     with gr.Blocks() as ui_component:
         with gr.Row():
@@ -64,10 +71,15 @@ def on_ui_tabs():
                         zipcode = gr.Text(label="ZIP Code")
                         country = gr.Dropdown(label="Country", choices=constants.countries)
                     birthday = gr.Text(label="Birthday")
-                    email = gr.Text(label="email")
+                    email = gr.Text(label="Email")
                     phone = gr.Text(label="Phone")
                     fax = gr.Text(label="Fax")
                     button_generate_vcard = gr.Button("Generate", variant="primary")
+                with gr.Tab("Email"):
+                    recipient = gr.Text(label="Address")
+                    subject = gr.Text(label="Subject")
+                    body = gr.Textbox(label="Message", lines=3)
+                    button_generate_email = gr.Button("Generate", variant="primary")
                 with gr.Tab("Coordinates"):
                     with gr.Row():
                         latitude = gr.Number(0, label="Latitude")
@@ -85,6 +97,7 @@ def on_ui_tabs():
         button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden, micro_code, error_correction, scale], output, show_progress=False)
         button_generate_geo.click(generate_geo, [latitude, longitude, micro_code, error_correction, scale], output, show_progress=False)
         button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax, micro_code, error_correction, scale], output, show_progress=False)
+        button_generate_email.click(generate_email, [recipient, subject, body, micro_code, error_correction, scale], output, show_progress=False)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
