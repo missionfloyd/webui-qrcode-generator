@@ -35,6 +35,10 @@ def generate_email(address, subject, body, micro, error, scale, boost_error, bor
     data = helpers.make_make_email_data(to=address, subject=subject, body=body)
     return generate(data, micro, error, scale, boost_error, border, dark, light)
 
+def generate_sms(smsto, message, micro, error, scale, boost_error, border, dark, light):
+    data = f"SMSTO:{smsto}:{message}"
+    return generate(data, micro, error, scale, boost_error, border, dark, light)
+
 def on_ui_tabs():
     with gr.Blocks() as ui_component:
         with gr.Row():
@@ -64,6 +68,10 @@ def on_ui_tabs():
                     phone = gr.Text(label="Phone")
                     fax = gr.Text(label="Fax")
                     button_generate_vcard = gr.Button("Generate", variant="primary")
+                with gr.Tab("SMS"):
+                    smsto = gr.Text(label="Number")
+                    message = gr.Textbox(label="Message", lines=3)
+                    button_generate_sms = gr.Button("Generate", variant="primary")
                 with gr.Tab("Email"):
                     recipient = gr.Text(label="Address")
                     subject = gr.Text(label="Subject")
@@ -95,6 +103,7 @@ def on_ui_tabs():
         button_generate_geo.click(generate_geo, [latitude, longitude] + common_inputs, output, show_progress=False)
         button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax] + common_inputs, output, show_progress=False)
         button_generate_email.click(generate_email, [recipient, subject, body] + common_inputs, output, show_progress=False)
+        button_generate_sms.click(generate_sms, [smsto, message] + common_inputs, output, show_progress=False)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
