@@ -9,35 +9,40 @@ from PIL import Image
 import segno
 from segno import helpers
 
-def generate(data, micro, error, scale, boost_error, border, dark, light):
+def generate(data, micro, error, scale, boost_error, border, dark, light, background):
     qrcode = segno.make(data, micro=micro, error=error, boost_error=boost_error)
     out = io.BytesIO()
-    qrcode.save(out, scale=scale, kind='png', border=border, dark=dark, light=light)
+    if background:
+        temp = io.BytesIO()
+        background.save(temp, "png")
+        qrcode.to_artistic(target=out, background=temp, scale=scale, kind='png', border=border, dark=dark, light=light)
+    else:
+        qrcode.save(out, scale=scale, kind='png', border=border, dark=dark, light=light)
     return Image.open(out)
 
-def generate_wifi(ssid, password, security, hidden, micro, error, scale, boost_error, border, dark, light):
+def generate_wifi(ssid, password, security, hidden, micro, error, scale, boost_error, border, dark, light, background):
     if security == "None":
         password = security = None
 
     data = helpers.make_wifi_data(ssid=ssid, password=password, security=security, hidden=hidden)
-    return generate(data, micro, error, scale, boost_error, border, dark, light)
+    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
 
-def generate_geo(latitude, longitude, micro, error, scale, boost_error, border, dark, light):
+def generate_geo(latitude, longitude, micro, error, scale, boost_error, border, dark, light, background):
     data = helpers.make_geo_data(latitude, longitude)
-    return generate(data, micro, error, scale, boost_error, border, dark, light)
+    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
 
 def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax,
-                   micro, error, scale, boost_error, border, dark, light):
+                   micro, error, scale, boost_error, border, dark, light, background):
     data = helpers.make_vcard_data(name=name, displayname=displayname, nickname=nickname, street=street, city=city, region=region, zipcode=zipcode, country=country, birthday=birthday, email=email, phone=phone, fax=fax)
-    return generate(data, micro, error, scale, boost_error, border, dark, light)
+    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
 
-def generate_email(address, subject, body, micro, error, scale, boost_error, border, dark, light):
+def generate_email(address, subject, body, micro, error, scale, boost_error, border, dark, light, background):
     data = helpers.make_make_email_data(to=address, subject=subject, body=body)
-    return generate(data, micro, error, scale, boost_error, border, dark, light)
+    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
 
-def generate_sms(smsto, message, micro, error, scale, boost_error, border, dark, light):
+def generate_sms(smsto, message, micro, error, scale, boost_error, border, dark, light, background):
     data = f"SMSTO:{smsto}:{message}"
-    return generate(data, micro, error, scale, boost_error, border, dark, light)
+    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
 
 def on_ui_tabs():
     with gr.Blocks() as ui_component:
@@ -92,11 +97,12 @@ def on_ui_tabs():
                     with gr.Row():
                         error_boost = gr.Checkbox(True, label="Boost Error Correction Level")
                         micro_code = gr.Checkbox(False, label="Micro QR Code")
+                    background = gr.Image(label="Background", type="pil")
 
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False, elem_id="qrcode_output").style(height=480)
 
-        common_inputs = [micro_code, error_correction, scale, error_boost, border, dark_color, light_color]
+        common_inputs = [micro_code, error_correction, scale, error_boost, border, dark_color, light_color, background]
 
         button_generate_text.click(generate, [text] + common_inputs, output, show_progress=False)
         button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden] + common_inputs, output, show_progress=False)
