@@ -3,11 +3,14 @@ import gradio as gr
 import io
 import os
 
-from modules import script_callbacks, generation_parameters_copypaste
+from modules import script_callbacks, generation_parameters_copypaste, extensions
+from modules.shared import opts
 from scripts import constants
 from PIL import Image
 import segno
 from segno import helpers
+
+controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active()]
 
 def generate(selected_tab, keys, *values):
     args = dict(zip(keys, values))
@@ -111,6 +114,13 @@ def on_ui_tabs():
                     send_to_buttons = generation_parameters_copypaste.create_buttons(["img2img", "inpaint", "extras"])
                     for tabname, button in send_to_buttons.items():
                         generation_parameters_copypaste.register_paste_params_button(generation_parameters_copypaste.ParamBinding(paste_button=button, tabname=tabname, source_image_component=output))
+                with gr.Row(visible=controlnet_active):
+                    sendto_controlnet_txt2img = gr.Button("Send to ControlNet (txt2img)")
+                    sendto_controlnet_img2img = gr.Button("Send to ControlNet (img2img)")
+                    control_net_max_models_num = opts.data.get('control_net_max_models_num', 1)
+                    sendto_controlnet_num = gr.Dropdown([str(i) for i in range(control_net_max_models_num)], label="ControlNet Unit", value="0", interactive=True, visible=(control_net_max_models_num > 1))
+                    sendto_controlnet_txt2img.click(None, [output, sendto_controlnet_num], None, _js="(i, n) => {sendToControlnet(i, 'txt2img', n)}", show_progress=False)
+                    sendto_controlnet_img2img.click(None, [output, sendto_controlnet_num], None, _js="(i, n) => {sendToControlnet(i, 'img2img', n)}", show_progress=False)
 
         selected_tab = gr.State("tab_text")
         input_keys = gr.State(list(inputs.keys()))
