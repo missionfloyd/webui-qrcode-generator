@@ -23,6 +23,12 @@ def generate(selected_tab, keys, *values):
         data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
     elif selected_tab == "tab_geo":
         data = f'geo:{args["geo_latitude"]},{args["geo_longitude"]}'
+    elif selected_tab == "tab_cal":
+        data = f'''BEGIN:VEVENT
+DTSTART:{args["cal_start"]}00Z
+DTEND:{args["cal_end"]}00Z
+SUMMARY:{args["cal_summary"]}
+END:VEVENT'''
     else:
         data = args["text"]
     
@@ -78,6 +84,14 @@ def on_ui_tabs():
                         inputs["geo_latitude"] = gr.Number(0, label="Latitude")
                         inputs["geo_longitude"] = gr.Number(0, label="Longitude")
 
+                with gr.Tab("Calendar") as tab_cal:
+                    with gr.Row():
+                        gr.HTML('<label>Start<br><input type="datetime-local" id="qrcode_cal_start"></label>')
+                        gr.HTML('<label>End<br><input type="datetime-local" id="qrcode_cal_end"></label>')
+                        inputs["cal_start"] = gr.Text(visible=False, elem_id="qrcode_cal_start_value")
+                        inputs["cal_end"] = gr.Text(visible=False, elem_id="qrcode_cal_end_value")
+                    inputs["cal_summary"] = gr.Text(label="Summary")
+
                 with gr.Accordion("Settings", open=False):
                     inputs["scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
                     inputs["border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
@@ -109,6 +123,7 @@ def on_ui_tabs():
         tab_sms.select(lambda: "tab_sms", None, selected_tab)
         tab_email.select(lambda: "tab_email", None, selected_tab)
         tab_geo.select(lambda: "tab_geo", None, selected_tab)
+        tab_cal.select(lambda: "tab_cal", None, selected_tab)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
