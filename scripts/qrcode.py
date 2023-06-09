@@ -3,113 +3,128 @@ import gradio as gr
 import io
 import os
 
-from modules import script_callbacks
+from modules import script_callbacks, generation_parameters_copypaste, extensions
+from modules.shared import opts
 from scripts import constants
 from PIL import Image
 import segno
 from segno import helpers
 
-def generate(data, micro, error, scale, boost_error, border, dark, light, background):
-    qrcode = segno.make(data, micro=micro, error=error, boost_error=boost_error)
+controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active()]
+
+def generate(selected_tab, keys, *values):
+    args = dict(zip(keys, values))
+    if selected_tab == "tab_wifi":
+        if args["wifi_security"] == "None":
+            args["wifi_password"] = args["wifi_security"] = None
+        data = helpers.make_wifi_data(ssid=args["wifi_ssid"], password=args["wifi_password"], security=args["wifi_security"], hidden=args["wifi_hidden"])
+    elif selected_tab == "tab_vcard":
+        data = helpers.make_vcard_data(name=args["vcard_name"], displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"])
+    elif selected_tab == "tab_sms":
+        data = f'smsto:{args["sms_number"]}:{args["sms_number"]}'
+    elif selected_tab == "tab_email":
+        data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
+    elif selected_tab == "tab_geo":
+        data = f'geo:{args["geo_latitude"]},{args["geo_longitude"]}'
+    else:
+        data = args["text"]
+    
+    try: 
+        qrcode = segno.make(data, micro=args["micro"], error=args["error"], boost_error=args["boost_error"])
+    except segno.encoder.DataOverflowError:
+        qrcode = segno.make(data, micro=False, error=args["error"], boost_error=args["boost_error"])
     out = io.BytesIO()
     if background:
         temp = io.BytesIO()
         background.save(temp, "png")
-        qrcode.to_artistic(target=out, background=temp, scale=scale, kind='png', border=border, dark=dark, light=light)
+        qrcode.to_artistic(target=out, background=temp, kind='png', scale=args["scale"], border=args["border"], dark=args["dark"], light=args["light"])
     else:
-        qrcode.save(out, scale=scale, kind='png', border=border, dark=dark, light=light)
+        qrcode.save(out, kind='png', scale=args["scale"], border=args["border"], dark=args["dark"], light=args["light"])
     return Image.open(out)
-
-def generate_wifi(ssid, password, security, hidden, micro, error, scale, boost_error, border, dark, light, background):
-    if security == "None":
-        password = security = None
-
-    data = helpers.make_wifi_data(ssid=ssid, password=password, security=security, hidden=hidden)
-    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
-
-def generate_geo(latitude, longitude, micro, error, scale, boost_error, border, dark, light, background):
-    data = helpers.make_geo_data(latitude, longitude)
-    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
-
-def generate_vcard(name, displayname, nickname, street, city, region, zipcode, country, birthday, email, phone, fax,
-                   micro, error, scale, boost_error, border, dark, light, background):
-    data = helpers.make_vcard_data(name=name, displayname=displayname, nickname=nickname, street=street, city=city, region=region, zipcode=zipcode, country=country, birthday=birthday, email=email, phone=phone, fax=fax)
-    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
-
-def generate_email(address, subject, body, micro, error, scale, boost_error, border, dark, light, background):
-    data = helpers.make_make_email_data(to=address, subject=subject, body=body)
-    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
-
-def generate_sms(smsto, message, micro, error, scale, boost_error, border, dark, light, background):
-    data = f"SMSTO:{smsto}:{message}"
-    return generate(data, micro, error, scale, boost_error, border, dark, light, background)
 
 def on_ui_tabs():
     with gr.Blocks() as ui_component:
+        inputs = {}
         with gr.Row():
             with gr.Column():
-                with gr.Tab("Text"):
-                    text = gr.Textbox(label="Text", lines=3)
-                    button_generate_text = gr.Button("Generate", variant="primary")
-                with gr.Tab("WiFi"):
-                    ssid = gr.Text(label="SSID")
-                    hidden = gr.Checkbox(False, label="Hidden SSID")
-                    password = gr.Text(label="Password")
-                    security = gr.Radio(value="None", label="Security", choices=["None", "WEP", "WPA"])
-                    button_generate_wifi = gr.Button("Generate", variant="primary")
-                with gr.Tab("vCard"):
-                    name = gr.Text(label="Name")
-                    displayname = gr.Text(label="Display Name")
-                    nickname = gr.Text(label="Nickname")
-                    address = gr.Text(label="Address")
+                with gr.Tab("Text") as tab_text:
+                    inputs["text"] = gr.Textbox(show_label=False, lines=3)
+
+                with gr.Tab("WiFi") as tab_wifi:
+                    inputs["wifi_ssid"] = gr.Text(label="SSID")
+                    inputs["wifi_hidden"] = gr.Checkbox(False, label="Hidden SSID")
+                    inputs["wifi_password"] = gr.Text(label="Password")
+                    inputs["wifi_security"] = gr.Radio(value="None", label="Security", choices=["None", "WEP", "WPA"])
+
+                with gr.Tab("vCard") as tab_vcard:
+                    inputs["vcard_name"] = gr.Text(label="Name")
+                    inputs["vcard_displayname"] = gr.Text(label="Display Name")
+                    inputs["vcard_nickname"] = gr.Text(label="Nickname")
+                    inputs["vcard_address"] = gr.Text(label="Address")
                     with gr.Row():
-                        city = gr.Text(label="City")
-                        state = gr.Text(label="State")
+                        inputs["vcard_city"] = gr.Text(label="City")
+                        inputs["vcard_state"] = gr.Text(label="State")
                     with gr.Row():
-                        zipcode = gr.Text(label="ZIP Code")
-                        country = gr.Dropdown(label="Country", choices=constants.countries)
-                    birthday = gr.Text(label="Birthday")
-                    email = gr.Text(label="Email")
-                    phone = gr.Text(label="Phone")
-                    fax = gr.Text(label="Fax")
-                    button_generate_vcard = gr.Button("Generate", variant="primary")
-                with gr.Tab("SMS"):
-                    smsto = gr.Text(label="Number")
-                    message = gr.Textbox(label="Message", lines=3)
-                    button_generate_sms = gr.Button("Generate", variant="primary")
-                with gr.Tab("Email"):
-                    recipient = gr.Text(label="Address")
-                    subject = gr.Text(label="Subject")
-                    body = gr.Textbox(label="Message", lines=3)
-                    button_generate_email = gr.Button("Generate", variant="primary")
-                with gr.Tab("Coordinates"):
+                        inputs["vcard_zipcode"] = gr.Text(label="ZIP Code")
+                        inputs["vcard_country"] = gr.Dropdown(label="Country", choices=constants.countries)
+                    inputs["vcard_birthday"] = gr.Text(label="Birthday")
+                    inputs["vcard_email"] = gr.Text(label="Email")
+                    inputs["vcard_phone"] = gr.Text(label="Phone")
+                    inputs["vcard_fax"] = gr.Text(label="Fax")
+
+                with gr.Tab("SMS") as tab_sms:
+                    inputs["sms_number"] = gr.Text(label="Number")
+                    inputs["sms_message"] = gr.Textbox(label="Message", lines=3)
+
+                with gr.Tab("Email") as tab_email:
+                    inputs["email_address"] = gr.Text(label="Address")
+                    inputs["email_subject"] = gr.Text(label="Subject")
+                    inputs["email_body"] = gr.Textbox(label="Message", lines=3)
+
+                with gr.Tab("Coordinates") as tab_geo:
                     with gr.Row():
-                        latitude = gr.Number(0, label="Latitude")
-                        longitude = gr.Number(0, label="Longitude")
-                    button_generate_geo = gr.Button("Generate", variant="primary")
+                        inputs["geo_latitude"] = gr.Number(0, label="Latitude")
+                        inputs["geo_longitude"] = gr.Number(0, label="Longitude")
+
                 with gr.Accordion("Settings", open=False):
-                    scale = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
-                    border = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
+                    inputs["scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
+                    inputs["border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
                     with gr.Row():
-                        dark_color = gr.ColorPicker("#000000", label="Dark Color")
-                        light_color = gr.ColorPicker("#ffffff", label="Light Color")
-                    error_correction = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                        inputs["dark"] = gr.ColorPicker("#000000", label="Dark Color")
+                        inputs["light"] = gr.ColorPicker("#ffffff", label="Light Color")
+                    inputs["error"] = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
                     with gr.Row():
-                        error_boost = gr.Checkbox(True, label="Boost Error Correction Level")
-                        micro_code = gr.Checkbox(False, label="Micro QR Code")
-                    background = gr.Image(label="Background", type="pil")
+                        inputs["boost_error"] = gr.Checkbox(True, label="Boost Error Correction Level")
+                        inputs["micro"] = gr.Checkbox(False, label="Micro QR Code")
+                    inputs["background"] = gr.Image(label="Background", type="pil")
+
+                button_generate = gr.Button("Generate", variant="primary")
 
             with gr.Column():
-                output = gr.Image(interactive=False, show_label=False, elem_id="qrcode_output").style(height=480)
+                output = gr.Image(interactive=False, show_label=False, type="pil", elem_id="qrcode_output").style(height=480)
+                with gr.Row():
+                    send_to_buttons = generation_parameters_copypaste.create_buttons(["img2img", "inpaint", "extras"])
+                    for tabname, button in send_to_buttons.items():
+                        generation_parameters_copypaste.register_paste_params_button(generation_parameters_copypaste.ParamBinding(paste_button=button, tabname=tabname, source_image_component=output))
+                with gr.Row(visible=controlnet_active):
+                    sendto_controlnet_txt2img = gr.Button("Send to ControlNet (txt2img)")
+                    sendto_controlnet_img2img = gr.Button("Send to ControlNet (img2img)")
+                    control_net_max_models_num = opts.data.get('control_net_max_models_num', 1)
+                    sendto_controlnet_num = gr.Dropdown([str(i) for i in range(control_net_max_models_num)], label="ControlNet Unit", value="0", interactive=True, visible=(control_net_max_models_num > 1))
+                    sendto_controlnet_txt2img.click(None, [output, sendto_controlnet_num], None, _js="(i, n) => {sendToControlnet(i, 'txt2img', n)}", show_progress=False)
+                    sendto_controlnet_img2img.click(None, [output, sendto_controlnet_num], None, _js="(i, n) => {sendToControlnet(i, 'img2img', n)}", show_progress=False)
 
-        common_inputs = [micro_code, error_correction, scale, error_boost, border, dark_color, light_color, background]
+        selected_tab = gr.State("tab_text")
+        input_keys = gr.State(list(inputs.keys()))
 
-        button_generate_text.click(generate, [text] + common_inputs, output, show_progress=False)
-        button_generate_wifi.click(generate_wifi, [ssid, password, security, hidden] + common_inputs, output, show_progress=False)
-        button_generate_geo.click(generate_geo, [latitude, longitude] + common_inputs, output, show_progress=False)
-        button_generate_vcard.click(generate_vcard, [name, displayname, nickname, address, city, state, zipcode, country, birthday, email, phone, fax] + common_inputs, output, show_progress=False)
-        button_generate_email.click(generate_email, [recipient, subject, body] + common_inputs, output, show_progress=False)
-        button_generate_sms.click(generate_sms, [smsto, message] + common_inputs, output, show_progress=False)
+        button_generate.click(generate, [selected_tab, input_keys, *list(inputs.values())], output, show_progress=False)
+
+        tab_text.select(lambda: "tab_text", None, selected_tab)
+        tab_wifi.select(lambda: "tab_wifi", None, selected_tab)
+        tab_vcard.select(lambda: "tab_vcard", None, selected_tab)
+        tab_sms.select(lambda: "tab_sms", None, selected_tab)
+        tab_email.select(lambda: "tab_email", None, selected_tab)
+        tab_geo.select(lambda: "tab_geo", None, selected_tab)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
