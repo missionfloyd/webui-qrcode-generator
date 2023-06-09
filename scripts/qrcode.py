@@ -3,7 +3,7 @@ import gradio as gr
 import io
 import os
 
-from modules import script_callbacks
+from modules import script_callbacks, generation_parameters_copypaste
 from scripts import constants
 from PIL import Image
 import segno
@@ -90,7 +90,11 @@ def on_ui_tabs():
                 button_generate = gr.Button("Generate", variant="primary")
 
             with gr.Column():
-                output = gr.Image(interactive=False, show_label=False, elem_id="qrcode_output").style(height=480)
+                output = gr.Image(interactive=False, show_label=False, type="pil", elem_id="qrcode_output").style(height=480)
+                with gr.Row():
+                    send_to_buttons = generation_parameters_copypaste.create_buttons(["img2img", "inpaint", "extras"])
+                    for tabname, button in send_to_buttons.items():
+                        generation_parameters_copypaste.register_paste_params_button(generation_parameters_copypaste.ParamBinding(paste_button=button, tabname=tabname, source_image_component=output))
 
         selected_tab = gr.State("tab_text")
         input_keys = gr.State(list(inputs.keys()) + list(settings.keys()))
