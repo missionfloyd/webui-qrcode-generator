@@ -34,9 +34,9 @@ def generate(selected_tab, keys, *values):
     except segno.encoder.DataOverflowError:
         qrcode = segno.make(data, micro=False, error=args["error"], boost_error=args["boost_error"])
     out = io.BytesIO()
-    if background:
+    if args["background"]:
         temp = io.BytesIO()
-        background.save(temp, "png")
+        args["background"].save(temp, "png")
         qrcode.to_artistic(target=out, background=temp, kind='png', scale=args["scale"], border=args["border"], dark=args["dark"], light=args["light"])
     else:
         qrcode.save(out, kind='png', scale=args["scale"], border=args["border"], dark=args["dark"], light=args["light"])
