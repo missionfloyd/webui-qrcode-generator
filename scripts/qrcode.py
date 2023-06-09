@@ -21,7 +21,7 @@ def generate(selected_tab, keys, *values):
     elif selected_tab == "tab_vcard":
         data = helpers.make_vcard_data(name=args["vcard_name"], displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"])
     elif selected_tab == "tab_sms":
-        data = f'smsto:{args["sms_number"]}:{args["sms_number"]}'
+        data = f'smsto:{args["sms_number"]}:{args["sms_message"]}'
     elif selected_tab == "tab_email":
         data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
     elif selected_tab == "tab_geo":
