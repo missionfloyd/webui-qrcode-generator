@@ -9,8 +9,8 @@ from PIL import Image
 import segno
 from segno import helpers
 
-def generate(selected_tab, inputs, *args):
-    args = dict(zip(inputs, args))
+def generate(selected_tab, keys, *values):
+    args = dict(zip(keys, values))
     if selected_tab == "tab_wifi":
         if args["wifi_security"] == "None":
             args["wifi_password"] = args["wifi_security"] = None
@@ -76,16 +76,15 @@ def on_ui_tabs():
                         inputs["geo_longitude"] = gr.Number(0, label="Longitude")
 
                 with gr.Accordion("Settings", open=False):
-                    settings = {}
-                    settings["scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
-                    settings["border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
+                    inputs["scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
+                    inputs["border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
                     with gr.Row():
-                        settings["dark"] = gr.ColorPicker("#000000", label="Dark Color")
-                        settings["light"] = gr.ColorPicker("#ffffff", label="Light Color")
-                    settings["error"] = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                        inputs["dark"] = gr.ColorPicker("#000000", label="Dark Color")
+                        inputs["light"] = gr.ColorPicker("#ffffff", label="Light Color")
+                    inputs["error"] = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
                     with gr.Row():
-                        settings["boost_error"] = gr.Checkbox(True, label="Boost Error Correction Level")
-                        settings["micro"] = gr.Checkbox(False, label="Micro QR Code")
+                        inputs["boost_error"] = gr.Checkbox(True, label="Boost Error Correction Level")
+                        inputs["micro"] = gr.Checkbox(False, label="Micro QR Code")
 
                 button_generate = gr.Button("Generate", variant="primary")
 
@@ -97,9 +96,9 @@ def on_ui_tabs():
                         generation_parameters_copypaste.register_paste_params_button(generation_parameters_copypaste.ParamBinding(paste_button=button, tabname=tabname, source_image_component=output))
 
         selected_tab = gr.State("tab_text")
-        input_keys = gr.State(list(inputs.keys()) + list(settings.keys()))
+        input_keys = gr.State(list(inputs.keys()))
 
-        button_generate.click(generate, [selected_tab, input_keys] + list(inputs.values()) + list(settings.values()), output, show_progress=False)
+        button_generate.click(generate, [selected_tab, input_keys, *list(inputs.values())], output, show_progress=False)
 
         tab_text.select(lambda: "tab_text", None, selected_tab)
         tab_wifi.select(lambda: "tab_wifi", None, selected_tab)
