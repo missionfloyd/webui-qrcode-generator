@@ -25,8 +25,11 @@ def generate(selected_tab, keys, *values):
         data = f'geo:{args["geo_latitude"]},{args["geo_longitude"]}'
     else:
         data = args["text"]
-
-    qrcode = segno.make(data, micro=args["micro"], error=args["error"], boost_error=args["boost_error"])
+    
+    try: 
+        qrcode = segno.make(data, micro=args["micro"], error=args["error"], boost_error=args["boost_error"])
+    except segno.encoder.DataOverflowError:
+        qrcode = segno.make(data, micro=False, error=args["error"], boost_error=args["boost_error"])
     out = io.BytesIO()
     qrcode.save(out, kind='png', scale=args["scale"], border=args["border"], dark=args["dark"], light=args["light"])
     return Image.open(out)
