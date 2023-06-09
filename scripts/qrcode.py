@@ -110,8 +110,10 @@ def on_ui_tabs():
 
         selected_tab = gr.State("tab_text")
         input_keys = gr.State(list(inputs.keys()))
+        input_values = list(inputs.values())
 
-        button_generate.click(generate, [selected_tab, input_keys, *list(inputs.values())], output, show_progress=False)
+        for input in input_values:
+            input.change(generate, [selected_tab, input_keys, *input_values], output, show_progress=False)
 
         tab_text.select(lambda: "tab_text", None, selected_tab)
         tab_wifi.select(lambda: "tab_wifi", None, selected_tab)
