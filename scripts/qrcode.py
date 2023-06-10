@@ -76,7 +76,7 @@ def on_ui_tabs():
                     inputs["email_subject"] = gr.Text(label="Subject")
                     inputs["email_body"] = gr.Textbox(label="Message", lines=3)
 
-                with gr.Tab("Coordinates") as tab_geo:
+                with gr.Tab("Location") as tab_geo:
                     with gr.Row():
                         inputs["geo_latitude"] = gr.Number(0, label="Latitude")
                         inputs["geo_longitude"] = gr.Number(0, label="Longitude")
