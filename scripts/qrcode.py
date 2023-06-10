@@ -7,10 +7,21 @@ from modules import script_callbacks, generation_parameters_copypaste, extension
 from modules.shared import opts
 from scripts import constants
 from PIL import Image
-import segno
+import qrcode
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles import moduledrawers
 from segno import helpers
 
 controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active()]
+
+styles = {
+    "Square": moduledrawers.SquareModuleDrawer(),
+    "Gapped Square": moduledrawers.GappedSquareModuleDrawer(),
+    "Circle": moduledrawers.CircleModuleDrawer(),
+    "Rounded": moduledrawers.RoundedModuleDrawer(),
+    "Vertical Bars": moduledrawers.VerticalBarsDrawer(),
+    "Horizontal Bars": moduledrawers.HorizontalBarsDrawer()
+}
 
 def generate(selected_tab, keys, *values):
     args = dict(zip(keys, values))
@@ -29,13 +40,10 @@ def generate(selected_tab, keys, *values):
     else:
         data = args["text"]
     
-    try: 
-        qrcode = segno.make(data, micro=args["micro"], error=args["error"], boost_error=args["boost_error"])
-    except segno.encoder.DataOverflowError:
-        qrcode = segno.make(data, micro=False, error=args["error"], boost_error=args["boost_error"])
-    out = io.BytesIO()
-    qrcode.save(out, kind='png', scale=args["scale"], border=args["border"], dark=args["dark"], light=args["light"])
-    return Image.open(out)
+    qr = qrcode.QRCode(error_correction=getattr(qrcode.constants, "ERROR_CORRECT_" + args["error_correction"][0]), box_size=args["scale"], border=args["border"])
+    qr.add_data(data)
+    img = qr.make_image(fill_color=args["fill_color"], back_color=args["back_color"], image_factory=StyledPilImage, module_drawer=styles[args["style"]])
+    return img.copy()
 
 def on_ui_tabs():
     with gr.Blocks() as ui_component:
@@ -76,7 +84,7 @@ def on_ui_tabs():
                     inputs["email_subject"] = gr.Text(label="Subject")
                     inputs["email_body"] = gr.Textbox(label="Message", lines=3)
 
-                with gr.Tab("Coordinates") as tab_geo:
+                with gr.Tab("Location") as tab_geo:
                     with gr.Row():
                         inputs["geo_latitude"] = gr.Number(0, label="Latitude")
                         inputs["geo_longitude"] = gr.Number(0, label="Longitude")
@@ -85,12 +93,11 @@ def on_ui_tabs():
                     inputs["scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
                     inputs["border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
                     with gr.Row():
-                        inputs["dark"] = gr.ColorPicker("#000000", label="Dark Color")
-                        inputs["light"] = gr.ColorPicker("#ffffff", label="Light Color")
-                    inputs["error"] = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                        inputs["fill_color"] = gr.ColorPicker("#000000", label="Color")
+                        inputs["back_color"] = gr.ColorPicker("#ffffff", label="Background Color")
                     with gr.Row():
-                        inputs["boost_error"] = gr.Checkbox(True, label="Boost Error Correction Level")
-                        inputs["micro"] = gr.Checkbox(False, label="Micro QR Code")
+                        inputs["error_correction"] = gr.Dropdown(value="M - 15% recoverable", label="Error Correction Level", choices=["L - 7% recoverable", "M - 15% recoverable", "Q - 25% recoverable", "H - 30% recoverable"])
+                        inputs["style"] = gr.Dropdown(value="Square", label="Style", choices=list(styles.keys()))
 
                 button_generate = gr.Button("Generate", variant="primary")
 
