@@ -61,7 +61,7 @@ def on_ui_tabs():
                         inputs["vcard_state"] = gr.Text(label="State")
                     with gr.Row():
                         inputs["vcard_zipcode"] = gr.Text(label="ZIP Code")
-                        inputs["vcard_country"] = gr.Dropdown(label="Country", choices=constants.countries)
+                        inputs["vcard_country"] = gr.Dropdown(label="Country", allow_custom_value=True, choices=constants.countries)
                     inputs["vcard_birthday"] = gr.Text(label="Birthday")
                     inputs["vcard_email"] = gr.Text(label="Email")
                     inputs["vcard_phone"] = gr.Text(label="Phone")
