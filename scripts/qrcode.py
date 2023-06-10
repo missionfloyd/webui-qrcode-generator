@@ -27,7 +27,7 @@ def generate(selected_tab, keys, *values):
     elif selected_tab == "tab_email":
         data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
     elif selected_tab == "tab_geo":
-        data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip(".0")},{"{0:.8f}".format(args["geo_longitude"]).rstrip(".0")}'
+        data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip("0").rstrip(".")},{"{0:.8f}".format(args["geo_longitude"]).rstrip("0").rstrip(".")}'
     else:
         data = args["text"]
     
