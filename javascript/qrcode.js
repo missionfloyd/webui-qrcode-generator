@@ -1,7 +1,33 @@
+onUiLoaded(function() {
+    gradioApp().querySelector("#qrcode_geo_latitude input").addEventListener("input", (event) => {
+        let target = event.originalTarget || event.composedPath()[0];
+        if (target.value < -90) {
+            target.value = -90;
+        } else if (target.value > 90) {
+            target.value = 90;
+        } else {
+            return;
+        }
+        updateInput(target);
+    });
+
+    gradioApp().querySelector("#qrcode_geo_longitude input").addEventListener("input", (event) => {
+        let target = event.originalTarget || event.composedPath()[0];
+        if (target.value < -180) {
+            target.value = -180;
+        } else if (target.value > 180) {
+            target.value = 180;
+        } else {
+            return;
+        }
+        updateInput(target);
+    });
+});
+
 async function sendToControlnet(img, tab, index) {
     const response = await fetch(img);
-	const blob = await response.blob();
-	const file = new File([blob], "image.png", { type: "image/png" });
+    const blob = await response.blob();
+    const file = new File([blob], "image.png", { type: "image/png" });
     const dt = new DataTransfer();
     dt.items.add(file);
     const list = dt.files;

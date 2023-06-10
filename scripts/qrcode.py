@@ -27,7 +27,7 @@ def generate(selected_tab, keys, *values):
     elif selected_tab == "tab_email":
         data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
     elif selected_tab == "tab_geo":
-        data = f'geo:{args["geo_latitude"]},{args["geo_longitude"]}'
+        data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip(".0")},{"{0:.8f}".format(args["geo_longitude"]).rstrip(".0")}'
     else:
         data = args["text"]
     
@@ -97,8 +97,8 @@ def on_ui_tabs():
 
                 with gr.Tab("Location") as tab_geo:
                     with gr.Row():
-                        inputs["geo_latitude"] = gr.Number(0, label="Latitude")
-                        inputs["geo_longitude"] = gr.Number(0, label="Longitude")
+                        inputs["geo_latitude"] = gr.Number(0, label="Latitude", elem_id="qrcode_geo_latitude")
+                        inputs["geo_longitude"] = gr.Number(0, label="Longitude", elem_id="qrcode_geo_longitude")
 
                 with gr.Accordion("Settings", open=False):
                     inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
