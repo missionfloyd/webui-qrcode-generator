@@ -30,11 +30,11 @@ def generate(selected_tab, keys, *values):
         data = args["text"]
     
     try: 
-        qrcode = segno.make(data, micro=args["micro"], error=args["error"], boost_error=args["boost_error"])
+        qrcode = segno.make(data, micro=args["setting_micro"], error=args["setting_error_correction"], boost_error=args["setting_boost_error_correction"])
     except segno.encoder.DataOverflowError:
-        qrcode = segno.make(data, micro=False, error=args["error"], boost_error=args["boost_error"])
+        qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=args["setting_boost_error_correction"])
     out = io.BytesIO()
-    qrcode.save(out, kind='png', scale=args["scale"], border=args["border"], dark=args["dark"], light=args["light"])
+    qrcode.save(out, kind='png', scale=args["setting_scale"], border=args["setting_border"], dark=args["setting_dark"], light=args["setting_light"])
     return Image.open(out)
 
 def on_ui_tabs():
@@ -82,15 +82,15 @@ def on_ui_tabs():
                         inputs["geo_longitude"] = gr.Number(0, label="Longitude")
 
                 with gr.Accordion("Settings", open=False):
-                    inputs["scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
-                    inputs["border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
+                    inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
+                    inputs["setting_border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
                     with gr.Row():
-                        inputs["dark"] = gr.ColorPicker("#000000", label="Dark Color")
-                        inputs["light"] = gr.ColorPicker("#ffffff", label="Light Color")
-                    inputs["error"] = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                        inputs["setting_dark"] = gr.ColorPicker("#000000", label="Dark Color")
+                        inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Light Color")
+                    inputs["setting_error_correction"] = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
                     with gr.Row():
-                        inputs["boost_error"] = gr.Checkbox(True, label="Boost Error Correction Level")
-                        inputs["micro"] = gr.Checkbox(False, label="Micro QR Code")
+                        inputs["setting_boost_error_correction"] = gr.Checkbox(True, label="Boost Error Correction Level")
+                        inputs["setting_micro"] = gr.Checkbox(False, label="Micro QR Code")
 
                 button_generate = gr.Button("Generate", variant="primary")
 
