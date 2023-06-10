@@ -19,7 +19,9 @@ def generate(selected_tab, keys, *values):
             args["wifi_password"] = args["wifi_security"] = None
         data = helpers.make_wifi_data(ssid=args["wifi_ssid"], password=args["wifi_password"], security=args["wifi_security"], hidden=args["wifi_hidden"])
     elif selected_tab == "tab_vcard":
-        data = helpers.make_vcard_data(name=args["vcard_name"], displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"])
+        data = helpers.make_vcard_data(name=args["vcard_name"], displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"], memo=args["vcard_memo"])
+    elif selected_tab == "tab_mecard":
+        data = helpers.make_mecard_data(name=args["mecard_name"], reading=args["mecard_kananame"], nickname=args["mecard_nickname"], houseno=args["mecard_address"], city=args["mecard_city"], prefecture=args["mecard_state"], zipcode=args["mecard_zipcode"], country=args["mecard_country"], birthday=args["mecard_birthday"], email=args["mecard_email"], phone=args["mecard_phone"], memo=args["mecard_memo"])
     elif selected_tab == "tab_sms":
         data = f'smsto:{args["sms_number"]}:{args["sms_message"]}'
     elif selected_tab == "tab_email":
@@ -66,6 +68,23 @@ def on_ui_tabs():
                     inputs["vcard_email"] = gr.Text(label="Email")
                     inputs["vcard_phone"] = gr.Text(label="Phone")
                     inputs["vcard_fax"] = gr.Text(label="Fax")
+                    inputs["vcard_memo"] = gr.Text(label="Memo")
+
+                with gr.Tab("MeCard") as tab_mecard:
+                    inputs["mecard_name"] = gr.Text(label="Name")
+                    inputs["mecard_kananame"] = gr.Text(label="Kana Name")
+                    inputs["mecard_nickname"] = gr.Text(label="Nickname")
+                    inputs["mecard_address"] = gr.Text(label="Address")
+                    with gr.Row():
+                        inputs["mecard_city"] = gr.Text(label="City")
+                        inputs["mecard_state"] = gr.Text(label="State")
+                    with gr.Row():
+                        inputs["mecard_zipcode"] = gr.Text(label="ZIP Code")
+                        inputs["mecard_country"] = gr.Dropdown(label="Country", allow_custom_value=True, choices=constants.countries)
+                    inputs["mecard_birthday"] = gr.Text(label="Birthday")
+                    inputs["mecard_email"] = gr.Text(label="Email")
+                    inputs["mecard_phone"] = gr.Text(label="Phone")
+                    inputs["mecard_memo"] = gr.Text(label="Memo")
 
                 with gr.Tab("SMS") as tab_sms:
                     inputs["sms_number"] = gr.Text(label="Number")
@@ -87,7 +106,7 @@ def on_ui_tabs():
                     with gr.Row():
                         inputs["setting_dark"] = gr.ColorPicker("#000000", label="Dark Color")
                         inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Light Color")
-                    inputs["setting_error_correction"] = gr.Dropdown(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                    inputs["setting_error_correction"] = gr.Radio(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
                     with gr.Row():
                         inputs["setting_boost_error_correction"] = gr.Checkbox(True, label="Boost Error Correction Level")
                         inputs["setting_micro"] = gr.Checkbox(False, label="Micro QR Code")
@@ -116,6 +135,7 @@ def on_ui_tabs():
         tab_text.select(lambda: "tab_text", None, selected_tab)
         tab_wifi.select(lambda: "tab_wifi", None, selected_tab)
         tab_vcard.select(lambda: "tab_vcard", None, selected_tab)
+        tab_mecard.select(lambda: "tab_mecard", None, selected_tab)
         tab_sms.select(lambda: "tab_sms", None, selected_tab)
         tab_email.select(lambda: "tab_email", None, selected_tab)
         tab_geo.select(lambda: "tab_geo", None, selected_tab)
