@@ -30,13 +30,13 @@ def generate(selected_tab, keys, *values):
     elif selected_tab == "tab_geo":
         data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip("0").rstrip(".")},{"{0:.8f}".format(args["geo_longitude"]).rstrip("0").rstrip(".")}'
     elif selected_tab == "tab_cal":
-        location = re.sub(r"([\\,])", r"\\\1", args["cal_location"])
-        data = f'''BEGIN:VEVENT
-DTSTART:{args["cal_start"]}
-DTEND:{args["cal_end"]}
-SUMMARY:{args["cal_summary"]}
-LOCATION:{location}
-END:VEVENT'''
+        data = f'BEGIN:VEVENT\nDTSTART:{args["cal_start"]}\nDTEND:{args["cal_end"]}\n'
+        if args["cal_summary"]:
+            data += f'SUMMARY:{args["cal_summary"]}\n'
+        if args["cal_location"]:
+            location = re.sub(r"([\\,])", r"\\\1", args["cal_location"])
+            data += f'LOCATION:{location}\n'
+        data += "END:VEVENT"
     else:
         data = args["text"]
     
