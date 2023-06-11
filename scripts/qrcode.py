@@ -30,8 +30,8 @@ def generate(selected_tab, keys, *values):
         data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip("0").rstrip(".")},{"{0:.8f}".format(args["geo_longitude"]).rstrip("0").rstrip(".")}'
     elif selected_tab == "tab_cal":
         data = f'''BEGIN:VEVENT
-DTSTART:{args["cal_start"]}00Z
-DTEND:{args["cal_end"]}00Z
+DTSTART:{args["cal_start"]}
+DTEND:{args["cal_end"]}
 SUMMARY:{args["cal_summary"]}
 END:VEVENT'''
     else:
