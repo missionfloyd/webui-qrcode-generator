@@ -2,6 +2,7 @@ import modules.scripts as scripts
 import gradio as gr
 import io
 import os
+import re
 
 from modules import script_callbacks, generation_parameters_copypaste, extensions
 from modules.shared import opts
@@ -29,10 +30,12 @@ def generate(selected_tab, keys, *values):
     elif selected_tab == "tab_geo":
         data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip("0").rstrip(".")},{"{0:.8f}".format(args["geo_longitude"]).rstrip("0").rstrip(".")}'
     elif selected_tab == "tab_cal":
+        location = re.sub(r"([\\,])", r"\\\1", args["cal_location"])
         data = f'''BEGIN:VEVENT
 DTSTART:{args["cal_start"]}
 DTEND:{args["cal_end"]}
 SUMMARY:{args["cal_summary"]}
+LOCATION:{location}
 END:VEVENT'''
     else:
         data = args["text"]
@@ -113,6 +116,7 @@ def on_ui_tabs():
                         inputs["cal_start"] = gr.Text(visible=False, elem_id="qrcode_cal_start_value")
                         inputs["cal_end"] = gr.Text(visible=False, elem_id="qrcode_cal_end_value")
                     inputs["cal_summary"] = gr.Text(label="Summary")
+                    inputs["cal_location"] = gr.Text(label="Location")
 
                 with gr.Accordion("Settings", open=False):
                     inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
