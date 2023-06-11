@@ -10,3 +10,16 @@
     max-height: 100%;
     margin: auto;
 }
+
+#qrcode_cal_start, #qrcode_cal_end {
+    width: 100%;
+    background: var(--input-background-fill);
+    border-color: var(--block-border-color);
+    border-radius: var(--input-radius);
+    box-shadow: var(--input-shadow);
+}
+
+#qrcode_cal_start:focus, #qrcode_cal_end:focus {
+    box-shadow: var(--input-shadow-focus);
+    border-color: var(--input-border-color-focus);
+}

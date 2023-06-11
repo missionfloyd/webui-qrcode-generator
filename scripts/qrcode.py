@@ -111,8 +111,8 @@ def on_ui_tabs():
 
                 with gr.Tab("Calendar") as tab_cal:
                     with gr.Row():
-                        gr.HTML('<label>Start<br><input type="datetime-local" id="qrcode_cal_start"></label>')
-                        gr.HTML('<label>End<br><input type="datetime-local" id="qrcode_cal_end"></label>')
+                        gr.HTML('<label><span style="color: var(--block-title-text-color)">Start</span><br><input type="datetime-local" id="qrcode_cal_start"></label>')
+                        gr.HTML('<label><span style="color: var(--block-title-text-color)">End</span><br><input type="datetime-local" id="qrcode_cal_end"></label>')
                         inputs["cal_start"] = gr.Text(visible=False, elem_id="qrcode_cal_start_value")
                         inputs["cal_end"] = gr.Text(visible=False, elem_id="qrcode_cal_end_value")
                     inputs["cal_summary"] = gr.Text(label="Summary")
