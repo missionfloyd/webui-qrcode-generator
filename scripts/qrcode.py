@@ -30,11 +30,8 @@ def generate(selected_tab, keys, *values):
         data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip("0").rstrip(".")},{"{0:.8f}".format(args["geo_longitude"]).rstrip("0").rstrip(".")}'
     else:
         data = args["text"]
-    
-    try: 
-        qrcode = segno.make(data, micro=args["setting_micro"], error=args["setting_error_correction"], boost_error=args["setting_boost_error_correction"])
-    except segno.encoder.DataOverflowError:
-        qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=args["setting_boost_error_correction"])
+
+    qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=False)
     out = io.BytesIO()
     qrcode.save(out, kind='png', scale=args["setting_scale"], border=args["setting_border"], dark=args["setting_dark"], light=args["setting_light"])
     return Image.open(out)
@@ -45,7 +42,7 @@ def on_ui_tabs():
         with gr.Row():
             with gr.Column():
                 with gr.Tab("Text") as tab_text:
-                    inputs["text"] = gr.Textbox(show_label=False, lines=3)
+                    inputs["text"] = gr.Textbox(show_label=False, lines=3, placeholder="Plain text / URL / Custom format")
 
                 with gr.Tab("WiFi") as tab_wifi:
                     inputs["wifi_ssid"] = gr.Text(label="SSID")
@@ -104,12 +101,9 @@ def on_ui_tabs():
                     inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
                     inputs["setting_border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
                     with gr.Row():
-                        inputs["setting_dark"] = gr.ColorPicker("#000000", label="Dark Color")
-                        inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Light Color")
-                    inputs["setting_error_correction"] = gr.Radio(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
-                    with gr.Row():
-                        inputs["setting_boost_error_correction"] = gr.Checkbox(True, label="Boost Error Correction Level")
-                        inputs["setting_micro"] = gr.Checkbox(False, label="Micro QR Code")
+                        inputs["setting_dark"] = gr.ColorPicker("#000000", label="Module Color")
+                        inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Background Color")
+                    inputs["setting_error_correction"] = gr.Radio(value="H", label="Error Correction Level", choices=["L", "M", "Q", "H"])
 
                 button_generate = gr.Button("Generate", variant="primary")
 
