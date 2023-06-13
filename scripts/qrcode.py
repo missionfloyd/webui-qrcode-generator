@@ -9,11 +9,15 @@ from scripts import constants
 from PIL import Image
 import segno
 from segno import helpers
+import barcode
+from barcode.writer import ImageWriter
 
 controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active()]
 
 def generate(selected_tab, keys, *values):
     args = dict(zip(keys, values))
+    out = io.BytesIO()
+
     if selected_tab == "tab_wifi":
         if args["wifi_security"] == "None":
             args["wifi_password"] = args["wifi_security"] = None
@@ -28,11 +32,15 @@ def generate(selected_tab, keys, *values):
         data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
     elif selected_tab == "tab_geo":
         data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip("0").rstrip(".")},{"{0:.8f}".format(args["geo_longitude"]).rstrip("0").rstrip(".")}'
+    elif selected_tab == "tab_barcode":
+        bc = barcode.get(args["barcode_type"])
+        options = {"foreground": args["setting_dark"], "background": args["setting_light"], "quiet_zone": args["setting_border"], "write_text": args["barcode_text"]}
+        bc(args["barcode_value"], writer=ImageWriter()).write(out, options)
+        return Image.open(out)
     else:
         data = args["text"]
 
     qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=False)
-    out = io.BytesIO()
     qrcode.save(out, kind='png', scale=args["setting_scale"], border=args["setting_border"], dark=args["setting_dark"], light=args["setting_light"])
     return Image.open(out)
 
@@ -97,6 +105,12 @@ def on_ui_tabs():
                         inputs["geo_latitude"] = gr.Number(0, label="Latitude", elem_id="qrcode_geo_latitude")
                         inputs["geo_longitude"] = gr.Number(0, label="Longitude", elem_id="qrcode_geo_longitude")
 
+                with gr.Tab("Barcode") as tab_barcode:
+                    with gr.Row():
+                        inputs["barcode_type"] = gr.Dropdown(value="upc", label="Type", choices=barcode.PROVIDED_BARCODES)
+                        inputs["barcode_value"] = gr.Text(label="Value")
+                    inputs["barcode_text"] = gr.Checkbox(False, label="Show Text")
+
                 with gr.Accordion("Settings", open=False):
                     inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
                     inputs["setting_border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
@@ -133,6 +147,7 @@ def on_ui_tabs():
         tab_sms.select(lambda: "tab_sms", None, selected_tab)
         tab_email.select(lambda: "tab_email", None, selected_tab)
         tab_geo.select(lambda: "tab_geo", None, selected_tab)
+        tab_barcode.select(lambda: "tab_barcode", None, selected_tab)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
