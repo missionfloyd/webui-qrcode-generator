@@ -19,7 +19,7 @@ def generate(selected_tab, keys, *values):
             args["wifi_password"] = args["wifi_security"] = None
         data = helpers.make_wifi_data(ssid=args["wifi_ssid"], password=args["wifi_password"], security=args["wifi_security"], hidden=args["wifi_hidden"])
     elif selected_tab == "tab_vcard":
-        data = helpers.make_vcard_data(name=args["vcard_name"], displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"], memo=args["vcard_memo"])
+        data = helpers.make_vcard_data(name=args["vcard_name"], displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"], memo=args["vcard_memo"], org=args["vcard_organization"], title=args["vcard_title"], cellphone=args["vcard_phone_mobile"], url=args["vcard_url"])
     elif selected_tab == "tab_mecard":
         data = helpers.make_mecard_data(name=args["mecard_name"], reading=args["mecard_kananame"], nickname=args["mecard_nickname"], houseno=args["mecard_address"], city=args["mecard_city"], prefecture=args["mecard_state"], zipcode=args["mecard_zipcode"], country=args["mecard_country"], birthday=args["mecard_birthday"], email=args["mecard_email"], phone=args["mecard_phone"], memo=args["mecard_memo"])
     elif selected_tab == "tab_sms":
@@ -54,6 +54,8 @@ def on_ui_tabs():
                     inputs["vcard_name"] = gr.Text(label="Name")
                     inputs["vcard_displayname"] = gr.Text(label="Display Name")
                     inputs["vcard_nickname"] = gr.Text(label="Nickname")
+                    inputs["vcard_organization"] = gr.Text(label="Organization")
+                    inputs["vcard_title"] = gr.Text(label="Title")
                     inputs["vcard_address"] = gr.Text(label="Address")
                     with gr.Row():
                         inputs["vcard_city"] = gr.Text(label="City")
@@ -62,8 +64,12 @@ def on_ui_tabs():
                         inputs["vcard_zipcode"] = gr.Text(label="ZIP Code")
                         inputs["vcard_country"] = gr.Dropdown(label="Country", allow_custom_value=True, choices=constants.countries)
                     inputs["vcard_birthday"] = gr.Text(label="Birthday")
-                    inputs["vcard_email"] = gr.Text(label="Email")
-                    inputs["vcard_phone"] = gr.Text(label="Phone")
+                    with gr.Row():
+                        inputs["vcard_email"] = gr.Text(label="Email")
+                        inputs["vcard_url"] = gr.Text(label="URL")
+                    with gr.Row():
+                        inputs["vcard_phone"] = gr.Text(label="Phone")
+                        inputs["vcard_phone_mobile"] = gr.Text(label="Mobile Phone")
                     inputs["vcard_fax"] = gr.Text(label="Fax")
                     inputs["vcard_memo"] = gr.Text(label="Memo")
 
