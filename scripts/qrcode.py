@@ -12,7 +12,7 @@ from segno import helpers
 
 controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active()]
 
-def generate(selected_tab, keys, *values):
+def generate(selected_tab, keys, more_colors, *values):
     args = dict(zip(keys, values))
     if selected_tab == "tab_wifi":
         if args["wifi_security"] == "None":
@@ -31,9 +31,16 @@ def generate(selected_tab, keys, *values):
     else:
         data = args["text"]
 
+    if more_colors:
+        colors = {"alignment_dark": args["setting_dark_align"], "alignment_light": args["setting_light_align"], "data_dark": args["setting_dark_data"], "data_light": args["setting_light_data"], "finder_dark": args["setting_dark_finder"], "finder_light": args["setting_light_finder"],
+                  "format_dark": args["setting_dark_format"], "format_light": args["setting_light_format"], "timing_dark": args["setting_dark_timing"], "timing_light": args["setting_light_timing"], "version_dark": args["setting_dark_version"], "version_light": args["setting_light_version"],
+                  "dark_module": args["setting_dark_module"], "quiet_zone": args["setting_quiet_zone"], "separator": args["setting_separator"], }
+    else:
+        colors = {"dark": args["setting_dark"], "light": args["setting_light"]}
+
     qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=False)
     out = io.BytesIO()
-    qrcode.save(out, kind='png', scale=args["setting_scale"], border=args["setting_border"], dark=args["setting_dark"], light=args["setting_light"])
+    qrcode.save(out, kind='png', scale=args["setting_scale"], border=args["setting_border"], **colors)
     return Image.open(out)
 
 def on_ui_tabs():
@@ -103,6 +110,31 @@ def on_ui_tabs():
                     with gr.Row():
                         inputs["setting_dark"] = gr.ColorPicker("#000000", label="Module Color")
                         inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Background Color")
+                    more_colors = gr.Checkbox(False, label="More Colors")
+                    with gr.Group(visible=False) as color_group:
+                        with gr.Row():
+                            inputs["setting_dark_align"] = gr.ColorPicker("#000000", label="Alignment Module")
+                            inputs["setting_light_align"] = gr.ColorPicker("#ffffff", label="Alignment Background")
+                        with gr.Row():
+                            inputs["setting_dark_data"] = gr.ColorPicker("#000000", label="Data Module")
+                            inputs["setting_light_data"] = gr.ColorPicker("#ffffff", label="Data Background")
+                        with gr.Row():
+                            inputs["setting_dark_finder"] = gr.ColorPicker("#000000", label="Finder Module")
+                            inputs["setting_light_finder"] = gr.ColorPicker("#ffffff", label="Finder Background")
+                        with gr.Row():
+                            inputs["setting_dark_format"] = gr.ColorPicker("#000000", label="Format Module")
+                            inputs["setting_light_format"] = gr.ColorPicker("#ffffff", label="Format Background")
+                        with gr.Row():
+                            inputs["setting_dark_timing"] = gr.ColorPicker("#000000", label="Timing Module")
+                            inputs["setting_light_timing"] = gr.ColorPicker("#ffffff", label="Timing Background")
+                        with gr.Row():
+                            inputs["setting_dark_version"] = gr.ColorPicker("#000000", label="Version Module")
+                            inputs["setting_light_version"] = gr.ColorPicker("#ffffff", label="Version Background Color")
+                        with gr.Row():
+                            inputs["setting_dark_module"] = gr.ColorPicker("#000000", label="Dark Module")
+                            inputs["setting_quiet_zone"] = gr.ColorPicker("#ffffff", label="Quiet Zone")
+                        with gr.Row():
+                            inputs["setting_separator"] = gr.ColorPicker("#ffffff", label="Separator")
                     inputs["setting_error_correction"] = gr.Radio(value="H", label="Error Correction Level", choices=["L", "M", "Q", "H"])
 
                 button_generate = gr.Button("Generate", variant="primary")
@@ -124,7 +156,7 @@ def on_ui_tabs():
         selected_tab = gr.State("tab_text")
         input_keys = gr.State(list(inputs.keys()))
 
-        button_generate.click(generate, [selected_tab, input_keys, *list(inputs.values())], output, show_progress=False)
+        button_generate.click(generate, [selected_tab, input_keys, more_colors, *list(inputs.values())], output, show_progress=False)
 
         tab_text.select(lambda: "tab_text", None, selected_tab)
         tab_wifi.select(lambda: "tab_wifi", None, selected_tab)
@@ -133,6 +165,8 @@ def on_ui_tabs():
         tab_sms.select(lambda: "tab_sms", None, selected_tab)
         tab_email.select(lambda: "tab_email", None, selected_tab)
         tab_geo.select(lambda: "tab_geo", None, selected_tab)
+        
+        more_colors.input(lambda x: gr.update(visible=x), more_colors, color_group)
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
