@@ -43,9 +43,9 @@ def generate(selected_tab, keys, *values):
     else:
         data = args["text"]
     
-    qr = qrcode.QRCode(error_correction=getattr(qrcode.constants, "ERROR_CORRECT_" + args["error_correction"][0]), box_size=args["scale"], border=args["border"])
+    qr = qrcode.QRCode(error_correction=getattr(qrcode.constants, "ERROR_CORRECT_" + args["setting_error_correction"]), box_size=args["setting_scale"], border=args["setting_border"])
     qr.add_data(data)
-    img = qr.make_image(fill_color=args["fill_color"], back_color=args["back_color"], image_factory=StyledPilImage, module_drawer=styles[args["style"]])
+    img = qr.make_image(fill_color=args["setting_fill_color"], back_color=args["setting_back_color"], image_factory=StyledPilImage, module_drawer=styles[args["setting_style"]])
     return img.copy()
 
 def on_ui_tabs():
@@ -122,11 +122,11 @@ def on_ui_tabs():
                     inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
                     inputs["setting_border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
                     with gr.Row():
-                        inputs["fill_color"] = gr.ColorPicker("#000000", label="Color")
-                        inputs["back_color"] = gr.ColorPicker("#ffffff", label="Background Color")
+                        inputs["setting_fill_color"] = gr.ColorPicker("#000000", label="Color")
+                        inputs["setting_back_color"] = gr.ColorPicker("#ffffff", label="Background Color")
                     with gr.Row():
-                        inputs["error_correction"] = gr.Dropdown(value="M - 15% recoverable", label="Error Correction Level", choices=["L - 7% recoverable", "M - 15% recoverable", "Q - 25% recoverable", "H - 30% recoverable"])
-                        inputs["style"] = gr.Dropdown(value="Square", label="Style", choices=list(styles.keys()))
+                        inputs["setting_error_correction"] = gr.Radio(value="H", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                        inputs["setting_style"] = gr.Dropdown(value="Square", label="Style", choices=list(styles.keys()))
 
                 button_generate = gr.Button("Generate", variant="primary")
 
