@@ -20,7 +20,8 @@ def generate(selected_tab, keys, *values):
             args["wifi_password"] = args["wifi_security"] = None
         data = helpers.make_wifi_data(ssid=args["wifi_ssid"], password=args["wifi_password"], security=args["wifi_security"], hidden=args["wifi_hidden"])
     elif selected_tab == "tab_vcard":
-        data = helpers.make_vcard_data(name=args["vcard_name"], displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"], memo=args["vcard_memo"])
+        name = f'{args["vcard_name_last"]};{args["vcard_name_first"]};{args["vcard_name_middle"]}'
+        data = helpers.make_vcard_data(name, displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"], memo=args["vcard_memo"], org=args["vcard_organization"], title=args["vcard_title"], cellphone=args["vcard_phone_mobile"], url=args["vcard_url"])
     elif selected_tab == "tab_mecard":
         data = helpers.make_mecard_data(name=args["mecard_name"], reading=args["mecard_kananame"], nickname=args["mecard_nickname"], houseno=args["mecard_address"], city=args["mecard_city"], prefecture=args["mecard_state"], zipcode=args["mecard_zipcode"], country=args["mecard_country"], birthday=args["mecard_birthday"], email=args["mecard_email"], phone=args["mecard_phone"], memo=args["mecard_memo"])
     elif selected_tab == "tab_sms":
@@ -39,11 +40,8 @@ def generate(selected_tab, keys, *values):
         data += "END:VEVENT"
     else:
         data = args["text"]
-    
-    try: 
-        qrcode = segno.make(data, micro=args["setting_micro"], error=args["setting_error_correction"], boost_error=args["setting_boost_error_correction"])
-    except segno.encoder.DataOverflowError:
-        qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=args["setting_boost_error_correction"])
+
+    qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=False)
     out = io.BytesIO()
     qrcode.save(out, kind='png', scale=args["setting_scale"], border=args["setting_border"], dark=args["setting_dark"], light=args["setting_light"])
     return Image.open(out)
@@ -54,7 +52,7 @@ def on_ui_tabs():
         with gr.Row():
             with gr.Column():
                 with gr.Tab("Text") as tab_text:
-                    inputs["text"] = gr.Textbox(show_label=False, lines=3)
+                    inputs["text"] = gr.Textbox(show_label=False, lines=3, placeholder="Plain text / URL / Custom format")
 
                 with gr.Tab("WiFi") as tab_wifi:
                     inputs["wifi_ssid"] = gr.Text(label="SSID")
@@ -63,9 +61,20 @@ def on_ui_tabs():
                     inputs["wifi_security"] = gr.Radio(value="None", label="Security", choices=["None", "WEP", "WPA"])
 
                 with gr.Tab("vCard") as tab_vcard:
-                    inputs["vcard_name"] = gr.Text(label="Name")
+                    with gr.Row():
+                        inputs["vcard_name_first"] = gr.Text(label="First Name")
+                        inputs["vcard_name_middle"] = gr.Text(label="Middle Name")
+                        inputs["vcard_name_last"] = gr.Text(label="Last Name")
                     inputs["vcard_displayname"] = gr.Text(label="Display Name")
                     inputs["vcard_nickname"] = gr.Text(label="Nickname")
+                    with gr.Row():
+                        inputs["vcard_email"] = gr.Text(label="Email")
+                        inputs["vcard_url"] = gr.Text(label="URL")
+                    with gr.Row():
+                        inputs["vcard_phone"] = gr.Text(label="Phone")
+                        inputs["vcard_phone_mobile"] = gr.Text(label="Mobile Phone")
+                    inputs["vcard_organization"] = gr.Text(label="Organization")
+                    inputs["vcard_title"] = gr.Text(label="Title")
                     inputs["vcard_address"] = gr.Text(label="Address")
                     with gr.Row():
                         inputs["vcard_city"] = gr.Text(label="City")
@@ -74,8 +83,6 @@ def on_ui_tabs():
                         inputs["vcard_zipcode"] = gr.Text(label="ZIP Code")
                         inputs["vcard_country"] = gr.Dropdown(label="Country", allow_custom_value=True, choices=constants.countries)
                     inputs["vcard_birthday"] = gr.Text(label="Birthday")
-                    inputs["vcard_email"] = gr.Text(label="Email")
-                    inputs["vcard_phone"] = gr.Text(label="Phone")
                     inputs["vcard_fax"] = gr.Text(label="Fax")
                     inputs["vcard_memo"] = gr.Text(label="Memo")
 
@@ -83,6 +90,8 @@ def on_ui_tabs():
                     inputs["mecard_name"] = gr.Text(label="Name")
                     inputs["mecard_kananame"] = gr.Text(label="Kana Name")
                     inputs["mecard_nickname"] = gr.Text(label="Nickname")
+                    inputs["mecard_email"] = gr.Text(label="Email")
+                    inputs["mecard_phone"] = gr.Text(label="Phone")
                     inputs["mecard_address"] = gr.Text(label="Address")
                     with gr.Row():
                         inputs["mecard_city"] = gr.Text(label="City")
@@ -91,8 +100,6 @@ def on_ui_tabs():
                         inputs["mecard_zipcode"] = gr.Text(label="ZIP Code")
                         inputs["mecard_country"] = gr.Dropdown(label="Country", allow_custom_value=True, choices=constants.countries)
                     inputs["mecard_birthday"] = gr.Text(label="Birthday")
-                    inputs["mecard_email"] = gr.Text(label="Email")
-                    inputs["mecard_phone"] = gr.Text(label="Phone")
                     inputs["mecard_memo"] = gr.Text(label="Memo")
 
                 with gr.Tab("SMS") as tab_sms:
@@ -122,12 +129,9 @@ def on_ui_tabs():
                     inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
                     inputs["setting_border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
                     with gr.Row():
-                        inputs["setting_dark"] = gr.ColorPicker("#000000", label="Dark Color")
-                        inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Light Color")
-                    inputs["setting_error_correction"] = gr.Radio(value="L", label="Error Correction Level", choices=["L", "M", "Q", "H"])
-                    with gr.Row():
-                        inputs["setting_boost_error_correction"] = gr.Checkbox(True, label="Boost Error Correction Level")
-                        inputs["setting_micro"] = gr.Checkbox(False, label="Micro QR Code")
+                        inputs["setting_dark"] = gr.ColorPicker("#000000", label="Module Color")
+                        inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Background Color")
+                    inputs["setting_error_correction"] = gr.Radio(value="H", label="Error Correction Level", choices=["L", "M", "Q", "H"])
 
                 button_generate = gr.Button("Generate", variant="primary")
 
