@@ -5,7 +5,6 @@ import os
 
 from modules import script_callbacks, generation_parameters_copypaste, extensions
 from modules.shared import opts
-from scripts import constants
 from PIL import Image
 import segno
 from segno import helpers
@@ -72,7 +71,7 @@ def on_ui_tabs():
                         inputs["vcard_state"] = gr.Text(label="State")
                     with gr.Row():
                         inputs["vcard_zipcode"] = gr.Text(label="ZIP Code")
-                        inputs["vcard_country"] = gr.Dropdown(label="Country", allow_custom_value=True, choices=constants.countries)
+                        inputs["vcard_country"] = gr.Text(label="Country")
                     inputs["vcard_birthday"] = gr.Text(label="Birthday")
                     inputs["vcard_fax"] = gr.Text(label="Fax")
                     inputs["vcard_memo"] = gr.Text(label="Memo")
@@ -89,7 +88,7 @@ def on_ui_tabs():
                         inputs["mecard_state"] = gr.Text(label="State")
                     with gr.Row():
                         inputs["mecard_zipcode"] = gr.Text(label="ZIP Code")
-                        inputs["mecard_country"] = gr.Dropdown(label="Country", allow_custom_value=True, choices=constants.countries)
+                        inputs["mecard_country"] = gr.Text(label="Country")
                     inputs["mecard_birthday"] = gr.Text(label="Birthday")
                     inputs["mecard_memo"] = gr.Text(label="Memo")
 
