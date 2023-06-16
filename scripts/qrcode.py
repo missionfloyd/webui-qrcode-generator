@@ -72,7 +72,7 @@ def on_ui_tabs():
                     with gr.Row():
                         inputs["vcard_zipcode"] = gr.Text(label="ZIP Code")
                         inputs["vcard_country"] = gr.Text(label="Country")
-                    inputs["vcard_birthday"] = gr.Text(label="Birthday")
+                    inputs["vcard_birthday"] = gr.Text(label="Birthday", placeholder="YYYY-MM-DD")
                     inputs["vcard_fax"] = gr.Text(label="Fax")
                     inputs["vcard_memo"] = gr.Text(label="Memo")
 
@@ -89,7 +89,7 @@ def on_ui_tabs():
                     with gr.Row():
                         inputs["mecard_zipcode"] = gr.Text(label="ZIP Code")
                         inputs["mecard_country"] = gr.Text(label="Country")
-                    inputs["mecard_birthday"] = gr.Text(label="Birthday")
+                    inputs["mecard_birthday"] = gr.Text(label="Birthday", placeholder="YYYYMMDD")
                     inputs["mecard_memo"] = gr.Text(label="Memo")
 
                 with gr.Tab("SMS") as tab_sms:
