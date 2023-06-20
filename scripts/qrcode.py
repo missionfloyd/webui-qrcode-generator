@@ -111,12 +111,12 @@ def on_ui_tabs():
                         inputs["geo_longitude"] = gr.Number(0, label="Longitude", elem_id="qrcode_geo_longitude")
 
                 with gr.Accordion("Settings", open=False):
-                    inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1)
-                    inputs["setting_border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1)
+                    inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1, elem_id="qrcode_scale")
+                    inputs["setting_border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1, elem_id="qrcode_border")
                     with gr.Row():
                         inputs["setting_dark"] = gr.ColorPicker("#000000", label="Module Color")
                         inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Background Color")
-                    inputs["setting_error_correction"] = gr.Radio(value="H", label="Error Correction Level", choices=["L", "M", "Q", "H"])
+                    inputs["setting_error_correction"] = gr.Radio(value="H", label="Error Correction Level", choices=["L", "M", "Q", "H"], elem_id="qrcode_error_correction")
 
                 button_generate = gr.Button("Generate", variant="primary")
                 status = gr.HTML()
