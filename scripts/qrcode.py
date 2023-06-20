@@ -13,28 +13,32 @@ controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active(
 
 def generate(selected_tab, keys, *values):
     args = dict(zip(keys, values))
-    if selected_tab == "tab_wifi":
-        if args["wifi_security"] == "None":
-            args["wifi_password"] = args["wifi_security"] = None
-        data = helpers.make_wifi_data(ssid=args["wifi_ssid"], password=args["wifi_password"], security=args["wifi_security"], hidden=args["wifi_hidden"])
-    elif selected_tab == "tab_vcard":
-        name = f'{args["vcard_name_last"]};{args["vcard_name_first"]};{args["vcard_name_middle"]}'
-        data = helpers.make_vcard_data(name, displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"], memo=args["vcard_memo"], org=args["vcard_organization"], title=args["vcard_title"], cellphone=args["vcard_phone_mobile"], url=args["vcard_url"])
-    elif selected_tab == "tab_mecard":
-        data = helpers.make_mecard_data(name=args["mecard_name"], reading=args["mecard_kananame"], nickname=args["mecard_nickname"], houseno=args["mecard_address"], city=args["mecard_city"], prefecture=args["mecard_state"], zipcode=args["mecard_zipcode"], country=args["mecard_country"], birthday=args["mecard_birthday"], email=args["mecard_email"], phone=args["mecard_phone"], memo=args["mecard_memo"])
-    elif selected_tab == "tab_sms":
-        data = f'smsto:{args["sms_number"]}:{args["sms_message"]}'
-    elif selected_tab == "tab_email":
-        data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
-    elif selected_tab == "tab_geo":
-        data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip("0").rstrip(".")},{"{0:.8f}".format(args["geo_longitude"]).rstrip("0").rstrip(".")}'
-    else:
-        data = args["text"]
+    try:
+        if selected_tab == "tab_wifi":
+            if args["wifi_security"] == "None":
+                args["wifi_password"] = args["wifi_security"] = None
+            data = helpers.make_wifi_data(ssid=args["wifi_ssid"], password=args["wifi_password"], security=args["wifi_security"], hidden=args["wifi_hidden"])
+        elif selected_tab == "tab_vcard":
+            name = f'{args["vcard_name_last"]};{args["vcard_name_first"]};{args["vcard_name_middle"]}'
+            data = helpers.make_vcard_data(name, displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"], memo=args["vcard_memo"], org=args["vcard_organization"], title=args["vcard_title"], cellphone=args["vcard_phone_mobile"], url=args["vcard_url"])
+        elif selected_tab == "tab_mecard":
+            data = helpers.make_mecard_data(name=args["mecard_name"], reading=args["mecard_kananame"], nickname=args["mecard_nickname"], houseno=args["mecard_address"], city=args["mecard_city"], prefecture=args["mecard_state"], zipcode=args["mecard_zipcode"], country=args["mecard_country"], birthday=args["mecard_birthday"], email=args["mecard_email"], phone=args["mecard_phone"], memo=args["mecard_memo"])
+        elif selected_tab == "tab_sms":
+            data = f'smsto:{args["sms_number"]}:{args["sms_message"]}'
+        elif selected_tab == "tab_email":
+            data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
+        elif selected_tab == "tab_geo":
+            data = f'geo:{"{0:.8f}".format(args["geo_latitude"]).rstrip("0").rstrip(".")},{"{0:.8f}".format(args["geo_longitude"]).rstrip("0").rstrip(".")}'
+        else:
+            data = args["text"]
+    
+        out = io.BytesIO()
+        qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=False)
+        qrcode.save(out, kind='png', scale=args["setting_scale"], border=args["setting_border"], dark=args["setting_dark"], light=args["setting_light"])
+    except Exception as e:
+        return None, getattr(e, "message", str(e))
 
-    qrcode = segno.make(data, micro=False, error=args["setting_error_correction"], boost_error=False)
-    out = io.BytesIO()
-    qrcode.save(out, kind='png', scale=args["setting_scale"], border=args["setting_border"], dark=args["setting_dark"], light=args["setting_light"])
-    return Image.open(out)
+    return Image.open(out), None
 
 def on_ui_tabs():
     with gr.Blocks() as ui_component:
@@ -115,6 +119,8 @@ def on_ui_tabs():
                     inputs["setting_error_correction"] = gr.Radio(value="H", label="Error Correction Level", choices=["L", "M", "Q", "H"])
 
                 button_generate = gr.Button("Generate", variant="primary")
+                status = gr.HTML()
+
 
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False, type="pil", elem_id="qrcode_output").style(height=480)
@@ -133,7 +139,7 @@ def on_ui_tabs():
         selected_tab = gr.State("tab_text")
         input_keys = gr.State(list(inputs.keys()))
 
-        button_generate.click(generate, [selected_tab, input_keys, *list(inputs.values())], output, show_progress=False)
+        button_generate.click(generate, [selected_tab, input_keys, *list(inputs.values())], [output, status], show_progress=False)
 
         tab_text.select(lambda: "tab_text", None, selected_tab)
         tab_wifi.select(lambda: "tab_wifi", None, selected_tab)
