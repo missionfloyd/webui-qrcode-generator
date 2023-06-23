@@ -7,7 +7,7 @@ const qrcode_tooltips = {
     "#qrcode_error_correction label:nth-of-type(4)": "High: 30% correctable",
 }
 
-onUiUpdate(function(){
+onUiLoaded(function(){
     for (let [key, value] of Object.entries(qrcode_tooltips)) {
         e = gradioApp().querySelector(key)
         if (e) gradioApp().querySelector(key).title = value;
