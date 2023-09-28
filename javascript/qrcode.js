@@ -16,6 +16,14 @@ onUiLoaded(function() {
             updateInput(target);
         }
     });
+    
+    gradioApp().querySelector("#qrcode_geo_longitude input, #qrcode_geo_latitude input").addEventListener("focusout", (event) => {
+        let target = event.originalTarget || event.composedPath()[0];
+        if (target.value == "") {
+            target.value = 0;
+            updateInput(target);
+        }
+    });
 });
 
 function clamp(num, min, max) {

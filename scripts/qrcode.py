@@ -37,7 +37,7 @@ def generate(selected_tab, keys, *values):
         scale = 1 if args["size_mode"] == "size" else args["setting_scale"]
         qrcode.save(out, kind='png', scale=scale, border=args["setting_border"], dark=args["setting_dark"], light=args["setting_light"])
     except Exception as e:
-        return None, getattr(e, "message", str(e))
+        return None, f'<b>❌{getattr(e, "message", str(e))}</b>'
 
     img = Image.open(out)
 
@@ -135,7 +135,7 @@ def on_ui_tabs():
 
 
             with gr.Column():
-                output = gr.Image(interactive=False, show_label=False, type="pil", elem_id="qrcode_output").style(height=480)
+                output = gr.Image(interactive=False, show_label=False, type="pil", elem_id="qrcode_output", height=480)
                 with gr.Row():
                     send_to_buttons = generation_parameters_copypaste.create_buttons(["img2img", "inpaint", "extras"])
                     for tabname, button in send_to_buttons.items():
