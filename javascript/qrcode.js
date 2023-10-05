@@ -73,11 +73,7 @@ async function sendToControlnet(img, tab, index) {
 
 function setImage(input, list) {
     try {
-        if (input.previousElementSibling &&
-            input.previousElementSibling.previousElementSibling &&
-            input.previousElementSibling.previousElementSibling.querySelector("button[aria-label='Clear']")) {
-            input.previousElementSibling.previousElementSibling.querySelector("button[aria-label='Clear']").click()
-        }
+        input.previousElementSibling?.previousElementSibling?.querySelector("button[aria-label='Clear']")?.click()
     } catch (e) {
         console.error(e)
     }
