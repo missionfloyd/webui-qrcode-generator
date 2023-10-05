@@ -38,12 +38,12 @@ async function sendToControlnet(img, tab, index) {
     dt.items.add(file);
     const list = dt.files;
 
-    window["switch_to_" + tab]();
+    await window["switch_to_" + tab]();
 
     const controlnet = gradioApp().querySelector(`#${tab}_script_container #controlnet`);
     const accordion = controlnet.querySelector(":scope > .label-wrap")
     if (!accordion.classList.contains("open")) {
-        accordion.click();
+        await accordion.click();
     }
     
     const tabs = controlnet.querySelectorAll("div.tab-nav > button");
@@ -69,6 +69,8 @@ async function sendToControlnet(img, tab, index) {
     } else {
         setImage(input, list);
     }
+    
+    controlnet.scrollIntoView();
 }
 
 function setImage(input, list) {
