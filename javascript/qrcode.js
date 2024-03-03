@@ -42,6 +42,7 @@ async function sendToControlnet(img, tab, index) {
 
     const controlnet = gradioApp().querySelector(`#${tab}_script_container #controlnet`);
     const accordion = controlnet.querySelector(":scope > .label-wrap")
+
     if (!accordion.classList.contains("open")) {
         await accordion.click();
     }
@@ -75,9 +76,9 @@ async function sendToControlnet(img, tab, index) {
 
 function setImage(input, list) {
     try {
-        input.previousElementSibling?.previousElementSibling?.querySelector("button[aria-label='Clear']")?.click()
+        input.previousElementSibling?.previousElementSibling?.querySelector("button[aria-label='Clear']")?.click();
     } catch (e) {
-        console.error(e)
+        console.error(e);
     }
     input.value = "";
     input.files = list;

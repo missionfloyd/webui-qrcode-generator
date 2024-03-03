@@ -11,23 +11,23 @@ from segno import helpers
 
 controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active()]
 
-def generate(selected_tab, keys, *values):
+def generate(keys, *values):
     args = dict(zip(keys, values))
     try:
-        if selected_tab == "tab_wifi":
+        if args["selected_tab"] == "tab_wifi":
             if args["wifi_security"] == "None":
                 args["wifi_password"] = args["wifi_security"] = None
             data = helpers.make_wifi_data(ssid=args["wifi_ssid"], password=args["wifi_password"], security=args["wifi_security"], hidden=args["wifi_hidden"])
-        elif selected_tab == "tab_vcard":
+        elif args["selected_tab"] == "tab_vcard":
             name = f'{args["vcard_name_last"]};{args["vcard_name_first"]};{args["vcard_name_middle"]}'
             data = helpers.make_vcard_data(name, displayname=args["vcard_displayname"], nickname=args["vcard_nickname"], street=args["vcard_address"], city=args["vcard_city"], region=args["vcard_state"], zipcode=args["vcard_zipcode"], country=args["vcard_country"], birthday=args["vcard_birthday"], email=args["vcard_email"], phone=args["vcard_phone"], fax=args["vcard_fax"], memo=args["vcard_memo"], org=args["vcard_organization"], title=args["vcard_title"], cellphone=args["vcard_phone_mobile"], url=args["vcard_url"])
-        elif selected_tab == "tab_mecard":
+        elif args["selected_tab"] == "tab_mecard":
             data = helpers.make_mecard_data(name=args["mecard_name"], reading=args["mecard_kananame"], nickname=args["mecard_nickname"], houseno=args["mecard_address"], city=args["mecard_city"], prefecture=args["mecard_state"], zipcode=args["mecard_zipcode"], country=args["mecard_country"], birthday=args["mecard_birthday"], email=args["mecard_email"], phone=args["mecard_phone"], memo=args["mecard_memo"])
-        elif selected_tab == "tab_sms":
+        elif args["selected_tab"] == "tab_sms":
             data = f'smsto:{args["sms_number"]}:{args["sms_message"]}'
-        elif selected_tab == "tab_email":
+        elif args["selected_tab"] == "tab_email":
             data = helpers.make_make_email_data(to=args["email_address"], subject=args["email_subject"], body=args["email_body"])
-        elif selected_tab == "tab_geo":
+        elif args["selected_tab"] == "tab_geo":
             data = helpers.make_geo_data(args["geo_latitude"], args["geo_longitude"])
         else:
             data = args["text"]
@@ -133,7 +133,6 @@ def on_ui_tabs():
                 button_generate = gr.Button("Generate", variant="primary")
                 status = gr.HTML()
 
-
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False, type="pil", elem_id="qrcode_output", height=480)
                 with gr.Row():
@@ -148,18 +147,18 @@ def on_ui_tabs():
                     sendto_controlnet_txt2img.click(None, [output, sendto_controlnet_num], None, _js="(i, n) => {sendToControlnet(i, 'txt2img', n)}", show_progress=False)
                     sendto_controlnet_img2img.click(None, [output, sendto_controlnet_num], None, _js="(i, n) => {sendToControlnet(i, 'img2img', n)}", show_progress=False)
 
-        selected_tab = gr.State("tab_text")
+        inputs["selected_tab"] = gr.State("tab_text")
         input_keys = gr.State(list(inputs.keys()))
 
-        button_generate.click(generate, [selected_tab, input_keys, *list(inputs.values())], [output, status], show_progress=False)
+        button_generate.click(generate, [input_keys, *list(inputs.values())], [output, status], show_progress=False)
 
-        tab_text.select(lambda: "tab_text", None, selected_tab)
-        tab_wifi.select(lambda: "tab_wifi", None, selected_tab)
-        tab_vcard.select(lambda: "tab_vcard", None, selected_tab)
-        tab_mecard.select(lambda: "tab_mecard", None, selected_tab)
-        tab_sms.select(lambda: "tab_sms", None, selected_tab)
-        tab_email.select(lambda: "tab_email", None, selected_tab)
-        tab_geo.select(lambda: "tab_geo", None, selected_tab)
+        tab_text.select(lambda: "tab_text", None, inputs["selected_tab"])
+        tab_wifi.select(lambda: "tab_wifi", None, inputs["selected_tab"])
+        tab_vcard.select(lambda: "tab_vcard", None, inputs["selected_tab"])
+        tab_mecard.select(lambda: "tab_mecard", None, inputs["selected_tab"])
+        tab_sms.select(lambda: "tab_sms", None, inputs["selected_tab"])
+        tab_email.select(lambda: "tab_email", None, inputs["selected_tab"])
+        tab_geo.select(lambda: "tab_geo", None, inputs["selected_tab"])
 
         return [(ui_component, "QR Code", "qrcode_tab")]
 
