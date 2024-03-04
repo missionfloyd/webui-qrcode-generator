@@ -1,4 +1,4 @@
-async function generateQRCode(keys, ...values) {
+function generateQRCode(keys, ...values) {
     const errorCorrection = {
         L: qrcodegen.QrCode.Ecc.LOW,
         M: qrcodegen.QrCode.Ecc.MEDIUM,
@@ -7,7 +7,13 @@ async function generateQRCode(keys, ...values) {
     }
 
     const args = keys.reduce((obj, key, index) => ({ ...obj, [key]: values[index] }), {});
-    const data = args["text"];
+    
+    if (args["selected_tab"] == "tab_wifi") {
+        var data = wifi_data(args["wifi_ssid"], args["wifi_password"], security=args["wifi_security"], args["wifi_hidden"])
+    } else {
+        var data = args["text"];
+    }
+
     const qr = qrcodegen.QrCode.encodeText(data, errorCorrection[args["setting_error_correction"]]);
 
     const scale = args["size_mode"] == "size" ? 1 : args["setting_scale"]
@@ -124,4 +130,33 @@ function setImage(input, list) {
     input.files = list;
     const event = new Event("change", { "bubbles": true, "composed": true });
     input.dispatchEvent(event);
+}
+
+function wifi_data(ssid, password, security, hidden) {
+    const escape = {
+        "\\": "\\\\",
+        ";": "\\;",
+        ":": "\\:",
+        '"': '\\"',
+    }
+
+    ssid = ssid.replace(/\\|;|:|"/g, matched => {
+        return escape[matched];
+    });
+    
+    var data = `WIFI:S:${ssid};`;
+
+    if (security != "None") {
+        data += `T:${security.toUpperCase()};`
+    }
+
+    if (password) {
+        password = password.replace(/\\|;|:|"/g, matched => {
+            return escape[matched];
+        });
+        data += `P:${password};`
+    }
+    
+    data += hidden ? "H:true;" : "";
+    return data;
 }
