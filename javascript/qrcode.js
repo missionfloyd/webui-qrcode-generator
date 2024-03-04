@@ -8,18 +8,18 @@ function generateQRCode(keys, ...values) {
 
     const args = keys.reduce((obj, key, index) => ({ ...obj, [key]: values[index] }), {});
     
-    if (args["selected_tab"] == "tab_wifi") {
-        var data = wifi_data(args["wifi_ssid"], args["wifi_password"], security=args["wifi_security"], args["wifi_hidden"])
+    if (args.selected_tab == "tab_wifi") {
+        var data = wifi_data(args.wifi_ssid, args.wifi_password, security=args.wifi_security, args.wifi_hidden)
     } else {
-        var data = args["text"];
+        var data = args.text;
     }
 
-    const qr = qrcodegen.QrCode.encodeText(data, errorCorrection[args["setting_error_correction"]]);
+    const qr = qrcodegen.QrCode.encodeText(data, errorCorrection[args.setting_error_correction]);
 
-    const scale = args["size_mode"] == "size" ? 1 : args["setting_scale"]
-    const border = args["setting_border"]
-    const lightColor = args["setting_light"]
-    const darkColor = args["setting_dark"]
+    const scale = args.size_mode == "size" ? 1 : args.setting_scale
+    const border = args.setting_border
+    const lightColor = args.setting_light
+    const darkColor = args.setting_dark
 
     const canvas = document.createElement("canvas");
     const width = (qr.size + border * 2) * scale;
@@ -35,8 +35,8 @@ function generateQRCode(keys, ...values) {
     }
     
     const resized = document.createElement("canvas");
-    resized.width = args["setting_size"];
-    resized.height = args["setting_size"];
+    resized.width = args.setting_size;
+    resized.height = args.setting_size;
     const ctxresized = resized.getContext("2d");
     ctxresized.imageSmoothingEnabled = false;
     ctxresized.drawImage(canvas, 0, 0, resized.width, resized.height);
