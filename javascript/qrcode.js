@@ -9,7 +9,9 @@ function generateQRCode(keys, ...values) {
     const args = keys.reduce((obj, key, index) => ({ ...obj, [key]: values[index] }), {});
     
     if (args.selected_tab == "tab_wifi") {
-        var data = wifi_data(args.wifi_ssid, args.wifi_password, security=args.wifi_security, args.wifi_hidden)
+        var data = wifiData(args.wifi_ssid, args.wifi_password, security=args.wifi_security, args.wifi_hidden)
+    } else if (args.selected_tab == "tab_geo") {
+        data = `geo:${args.geo_latitude.toString().replace(/\.0+$/, "")},${args.geo_longitude.toString().replace(/\.0+$/, "")}`
     } else {
         var data = args.text;
     }
@@ -77,6 +79,18 @@ function clamp(num, min, max) {
 };
 
 async function sendToControlnet(img, tab, index) {
+    function setImage(input, list) {
+        try {
+            input.previousElementSibling?.previousElementSibling?.querySelector("button[aria-label='Clear']")?.click();
+        } catch (e) {
+            console.error(e);
+        }
+        input.value = "";
+        input.files = list;
+        const event = new Event("change", { "bubbles": true, "composed": true });
+        input.dispatchEvent(event);
+    }
+
     const response = await fetch(img);
     const blob = await response.blob();
     const file = new File([blob], "image.png", { type: "image/png" });
@@ -120,19 +134,7 @@ async function sendToControlnet(img, tab, index) {
     controlnet.scrollIntoView();
 }
 
-function setImage(input, list) {
-    try {
-        input.previousElementSibling?.previousElementSibling?.querySelector("button[aria-label='Clear']")?.click();
-    } catch (e) {
-        console.error(e);
-    }
-    input.value = "";
-    input.files = list;
-    const event = new Event("change", { "bubbles": true, "composed": true });
-    input.dispatchEvent(event);
-}
-
-function wifi_data(ssid, password, security, hidden) {
+function wifiData(ssid, password, security, hidden) {
     const escape = {
         "\\": "\\\\",
         ";": "\\;",
@@ -145,7 +147,7 @@ function wifi_data(ssid, password, security, hidden) {
     });
     
     var data = `WIFI:S:${ssid};`;
-
+    
     if (security != "None") {
         data += `T:${security.toUpperCase()};`
     }
@@ -157,6 +159,9 @@ function wifi_data(ssid, password, security, hidden) {
         data += `P:${password};`
     }
     
-    data += hidden ? "H:true;" : "";
+    if (hidden) {
+        data += "H:true;"
+    }
+    
     return data;
 }
