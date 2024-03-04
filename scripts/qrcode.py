@@ -6,8 +6,6 @@ import os
 from modules import script_callbacks, generation_parameters_copypaste, extensions
 from modules.shared import opts
 from PIL import Image
-import segno
-from segno import helpers
 
 controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active()]
 
@@ -116,7 +114,7 @@ def on_ui_tabs():
                         inputs["geo_latitude"] = gr.Number(0, label="Latitude", elem_id="qrcode_geo_latitude")
                         inputs["geo_longitude"] = gr.Number(0, label="Longitude", elem_id="qrcode_geo_longitude")
 
-                inputs["size_mode"] = gr.State("size")
+                inputs["size_mode"] = gr.Text("size", visible=False)
 
                 with gr.Tab("Scale to") as tab_size:
                     tab_size.select(lambda: "size", None, inputs["size_mode"])
@@ -147,10 +145,11 @@ def on_ui_tabs():
                     sendto_controlnet_txt2img.click(None, [output, sendto_controlnet_num], None, _js="(i, n) => {sendToControlnet(i, 'txt2img', n)}", show_progress=False)
                     sendto_controlnet_img2img.click(None, [output, sendto_controlnet_num], None, _js="(i, n) => {sendToControlnet(i, 'img2img', n)}", show_progress=False)
 
-        inputs["selected_tab"] = gr.State("tab_text")
-        input_keys = gr.State(list(inputs.keys()))
+        inputs["selected_tab"] = gr.Text("tab_text", visible=False)
+        input_keys = gr.JSON(list(inputs.keys()), visible=False)
 
-        button_generate.click(generate, [input_keys, *list(inputs.values())], [output, status], show_progress=False)
+        #button_generate.click(generate, [input_keys, *list(inputs.values())], [output, status], show_progress=False)
+        button_generate.click(None, [input_keys, *list(inputs.values())], [output], show_progress=False, _js="generateQRCode")
 
         tab_text.select(lambda: "tab_text", None, inputs["selected_tab"])
         tab_wifi.select(lambda: "tab_wifi", None, inputs["selected_tab"])

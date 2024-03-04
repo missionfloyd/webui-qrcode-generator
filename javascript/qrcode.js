@@ -1,3 +1,43 @@
+async function generateQRCode(keys, ...values) {
+    const errorCorrection = {
+        L: qrcodegen.QrCode.Ecc.LOW,
+        M: qrcodegen.QrCode.Ecc.MEDIUM,
+        Q: qrcodegen.QrCode.Ecc.QUARTILE,
+        H: qrcodegen.QrCode.Ecc.HIGH,
+    }
+
+    const args = keys.reduce((obj, key, index) => ({ ...obj, [key]: values[index] }), {});
+    const data = args["text"];
+    const qr = qrcodegen.QrCode.encodeText(data, errorCorrection[args["setting_error_correction"]]);
+
+    const scale = args["size_mode"] == "size" ? 1 : args["setting_scale"]
+    const border = args["setting_border"]
+    const lightColor = args["setting_light"]
+    const darkColor = args["setting_dark"]
+
+    const canvas = document.createElement("canvas");
+    const width = (qr.size + border * 2) * scale;
+    canvas.width = width;
+    canvas.height = width;
+    const ctx = canvas.getContext("2d");
+
+    for (let y = -border; y < qr.size + border; y++) {
+        for (let x = -border; x < qr.size + border; x++) {
+            ctx.fillStyle = qr.getModule(x, y) ? darkColor : lightColor;
+            ctx.fillRect((x + border) * scale, (y + border) * scale, scale, scale);
+        }
+    }
+    
+    const resized = document.createElement("canvas");
+    resized.width = args["setting_size"];
+    resized.height = args["setting_size"];
+    const ctxresized = resized.getContext("2d");
+    ctxresized.imageSmoothingEnabled = false;
+    ctxresized.drawImage(canvas, 0, 0, resized.width, resized.height);
+
+    return resized.toDataURL();
+}
+
 onUiLoaded(function() {
     gradioApp().querySelector("#qrcode_geo_latitude input").addEventListener("input", (event) => {
         let target = event.originalTarget || event.composedPath()[0];
