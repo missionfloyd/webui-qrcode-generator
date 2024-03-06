@@ -9,8 +9,6 @@ from PIL import Image
 import segno
 from segno import helpers
 
-controlnet_active = "sd-webui-controlnet" in [x.name for x in extensions.active()]
-
 def generate(keys, *values):
     args = dict(zip(keys, values))
     try:
@@ -121,13 +119,17 @@ def on_ui_tabs():
                 with gr.Tab("Scale to") as tab_size:
                     tab_size.select(lambda: "size", None, inputs["size_mode"])
                     inputs["setting_size"] = gr.Slider(label="Size", minimum=64, maximum=2048, value=512, step=8)
+
                 with gr.Tab("Scale by") as tab_scale:
                     tab_scale.select(lambda: "scale", None, inputs["size_mode"])
                     inputs["setting_scale"] = gr.Slider(label="Scale", minimum=1, maximum=50, value=10, step=1, elem_id="qrcode_scale")
+
                 inputs["setting_border"] = gr.Slider(label="Border", minimum=0, maximum=10, value=4, step=1, elem_id="qrcode_border")
+
                 with gr.Row():
                     inputs["setting_dark"] = gr.ColorPicker("#000000", label="Module Color")
                     inputs["setting_light"] = gr.ColorPicker("#ffffff", label="Background Color")
+
                 inputs["setting_error_correction"] = gr.Radio(value="H", label="Error Correction Level", choices=["L", "M", "Q", "H"], elem_id="qrcode_error_correction")
 
                 button_generate = gr.Button("Generate", variant="primary")
@@ -135,11 +137,13 @@ def on_ui_tabs():
 
             with gr.Column():
                 output = gr.Image(interactive=False, show_label=False, type="pil", elem_id="qrcode_output", height=480)
+
                 with gr.Row():
                     send_to_buttons = generation_parameters_copypaste.create_buttons(["img2img", "inpaint", "extras"])
                     for tabname, button in send_to_buttons.items():
                         generation_parameters_copypaste.register_paste_params_button(generation_parameters_copypaste.ParamBinding(paste_button=button, tabname=tabname, source_image_component=output))
-                with gr.Row(visible=controlnet_active):
+
+                with gr.Row(visible="sd-webui-controlnet" in [x.name for x in extensions.active()]):
                     sendto_controlnet_txt2img = gr.Button("Send to ControlNet (txt2img)")
                     sendto_controlnet_img2img = gr.Button("Send to ControlNet (img2img)")
                     control_net_max_models_num = opts.data.get('control_net_max_models_num', 1)
@@ -149,8 +153,7 @@ def on_ui_tabs():
 
         inputs["selected_tab"] = gr.State("tab_text")
         input_keys = gr.State(list(inputs.keys()))
-
-        button_generate.click(generate, [input_keys, *list(inputs.values())], [output, status], show_progress=False)
+        button_generate.click(generate, [input_keys, *inputs.values()], [output, status], show_progress=False)
 
         tab_text.select(lambda: "tab_text", None, inputs["selected_tab"])
         tab_wifi.select(lambda: "tab_wifi", None, inputs["selected_tab"])
