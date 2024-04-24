@@ -136,7 +136,7 @@ def on_ui_tabs():
                 status = gr.HTML()
 
             with gr.Column():
-                output = gr.Image(interactive=False, show_label=False, type="pil", elem_id="qrcode_output", height=480)
+                output = gr.Image(interactive=False, show_label=False, type="pil", format="png", elem_id="qrcode_output", height=480)
 
                 with gr.Row():
                     send_to_buttons = generation_parameters_copypaste.create_buttons(["img2img", "inpaint", "extras"])
